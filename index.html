@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HanziGrammar — ระบบแปลและวิเคราะห์ไวยากรณ์จีนอัจฉริยะ</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen font-sans antialiased selection:bg-blue-200">
+
+  <!-- Navigation Bar -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-xs">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white text-xl font-bold shadow-sm">
+          汉
+        </div>
+        <div>
+          <h1 class="text-lg font-bold text-slate-900 tracking-tight">HanziGrammar</h1>
+          <p class="text-xs text-slate-500">แปลและวิเคราะห์ไวยากรณ์จีนแบบ Interactive</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <div id="apiKeyStatusBadge" onclick="toggleModal('settingsModal', true)"></div>
+        <button onclick="toggleModal('settingsModal', true)" class="p-2 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition" title="ตั้งค่า API Key">
+          ⚙️
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Layout -->
+  <main class="max-w-6xl mx-auto px-4 sm:px-6 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
+    
+    <!-- Left Column: Input & Results (8 cols) -->
+    <div class="lg:col-span-8 space-y-6">
+
+      <!-- Input Card -->
+      <section class="bg-white rounded-2xl p-6 shadow-xs border border-slate-200 space-y-4">
+        <div class="flex items-center justify-between">
+          <label class="text-sm font-bold text-slate-800 flex items-center gap-2">
+            <span>🇨🇳</span> ป้อนข้อความภาษาจีน
+          </label>
+          <span class="text-xs text-slate-400">รองรับทั้งคำเดี่ยวและประโยคยาว</span>
+        </div>
+
+        <div class="relative">
+          <textarea id="inputText" class="w-full p-4 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none text-xl font-medium text-slate-900 placeholder:text-slate-400 resize-none transition" rows="3" placeholder="พิมพ์หรือวางประโยคภาษาจีนที่นี่ เช่น 我昨天把那本书看完了。"></textarea>
+        </div>
+
+        <!-- Presets -->
+        <div class="flex flex-wrap items-center gap-2 text-xs">
+          <span class="text-slate-400 font-medium">ตัวอย่างประโยค:</span>
+          <button class="btn-preset px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition" data-sentence="我昨天把那本书看完了。">โครงสร้าง 把</button>
+          <button class="btn-preset px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition" data-sentence="苹果被弟弟吃掉了。">ประโยคกรรม 被</button>
+          <button class="btn-preset px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition" data-sentence="他是去年坐飞机去北京学习汉语的。">เน้น 是...的</button>
+          <button class="btn-preset px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition" data-sentence="今天的天气比昨天冷得多。">เปรียบเทียบ 比</button>
+        </div>
+
+        <!-- Role Color Legend -->
+        <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 flex flex-wrap items-center gap-3 text-xs">
+          <span class="font-semibold text-slate-500">รหัสสี:</span>
+          <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-blue-500"></span> ประธาน/นาม</span>
+          <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-emerald-500"></span> กริยา/ภาคแสดง</span>
+          <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-amber-500"></span> กรรม</span>
+          <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-purple-500"></span> ไวยากรณ์พิเศษ</span>
+          <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-pink-500"></span> เวลา/สถานที่</span>
+          <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-teal-500"></span> ส่วนเติมเต็ม</span>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex items-center justify-between pt-2">
+          <div class="flex items-center gap-2">
+            <button id="btnTogglePinyin" class="px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-200 hover:bg-slate-50 transition bg-blue-50 text-blue-700">
+              พินอิน (Pinyin)
+            </button>
+          </div>
+
+          <button id="btnAnalyze" class="bg-blue-600 hover:bg-blue-700 active:scale-98 text-white px-6 py-2.5 rounded-xl font-medium text-sm transition shadow-sm flex items-center gap-2">
+            <span id="analyzeSpinner" class="hidden w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+            <span id="btnAnalyzeText">วิเคราะห์ประโยค</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Results Container (Hidden until analyzed) -->
+      <div id="resultsContainer" class="hidden space-y-6">
+
+        <!-- Result Card 1: Overview & Highlighting -->
+        <section class="bg-white rounded-2xl p-6 shadow-xs border border-slate-200 space-y-6">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+            <div>
+              <span class="text-xs uppercase tracking-wider font-bold text-slate-400">คำแปลภาษาไทย</span>
+              <p id="fullTranslation" class="text-2xl font-semibold text-slate-900 mt-1"></p>
+            </div>
+            <div class="flex items-center gap-2">
+              <span id="localSourceBadge" class="hidden text-xs bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-medium">Local 0 API</span>
+              <button id="btnPlaySentenceAudio" class="p-2 rounded-xl text-slate-600 hover:text-blue-600 hover:bg-blue-50 transition" title="ฟังเสียงอ่านประโยค">
+                🔊 ฟังเสียง
+              </button>
+            </div>
+          </div>
+
+          <!-- Color-coded Interactive Sentence -->
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-xs uppercase tracking-wider font-bold text-slate-400">โครงสร้างประโยคแบบไฮไลต์ (Hover เพื่อดูความสัมพันธ์)</span>
+            </div>
+            <div id="sentenceTokensContainer" class="flex flex-wrap gap-2.5 p-5 bg-slate-50 rounded-2xl border border-slate-200">
+              <!-- Dynamically generated tokens -->
+            </div>
+          </div>
+        </section>
+
+        <!-- Result Card 2: Grammar Points -->
+        <section id="grammarSection" class="bg-white rounded-2xl p-6 shadow-xs border border-slate-200 space-y-4">
+          <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+            <span>📖</span> จุดไวยากรณ์สำคัญในประโยค (Grammar Points)
+          </h3>
+          <div id="grammarCardsContainer" class="space-y-3">
+            <!-- Dynamically generated grammar cards -->
+          </div>
+        </section>
+
+        <!-- Result Card 3: Word-by-Word Lexical Table -->
+        <section class="bg-white rounded-2xl p-6 shadow-xs border border-slate-200 space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+              <span>📝</span> คำแปลและหน้าที่ของคำรายคำ (Lexical Table)
+            </h3>
+            <div class="flex items-center gap-2">
+              <button id="btnExportMarkdown" class="px-3 py-1 text-xs font-medium border border-slate-200 rounded-lg hover:bg-slate-50 transition">
+                📋 คัดลอก Markdown
+              </button>
+              <button id="btnExportAnki" class="px-3 py-1 text-xs font-medium border border-slate-200 rounded-lg hover:bg-slate-50 transition">
+                🗂️ ส่งออก Anki
+              </button>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm border-collapse">
+              <thead>
+                <tr class="border-b border-slate-200 text-slate-500 font-semibold text-xs">
+                  <th class="py-2.5 px-4">คำศัพท์</th>
+                  <th class="py-2.5 px-4">พินอิน</th>
+                  <th class="py-2.5 px-4">ชนิดคำ</th>
+                  <th class="py-2.5 px-4">หน้าที่</th>
+                  <th class="py-2.5 px-4">ความหมายในบริบท</th>
+                  <th class="py-2.5 px-4">ระดับ</th>
+                  <th class="py-2.5 px-4 text-right">เสียง</th>
+                </tr>
+              </thead>
+              <tbody id="lexicalTableBody">
+                <!-- Dynamically generated rows -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+      </div>
+    </div>
+
+    <!-- Right Column: History & Quick Guide (4 cols) -->
+    <div class="lg:col-span-4 space-y-6">
+      
+      <!-- History Drawer -->
+      <section class="bg-white rounded-2xl p-5 shadow-xs border border-slate-200 space-y-3">
+        <h3 class="text-sm font-bold text-slate-900 flex items-center justify-between">
+          <span>🕒 ประวัติการวิเคราะห์</span>
+          <span class="text-xs text-slate-400 font-normal">บันทึกอัตโนมัติ</span>
+        </h3>
+        <div id="historyList" class="space-y-2 max-h-80 overflow-y-auto pr-1">
+          <!-- Dynamically populated history -->
+        </div>
+      </section>
+
+      <!-- Quick Guide Card -->
+      <section class="bg-gradient-to-br from-blue-50 to-indigo-50/50 rounded-2xl p-5 border border-blue-100 text-xs space-y-3 text-slate-700">
+        <h4 class="font-bold text-blue-900 text-sm flex items-center gap-1.5">
+          <span>💡</span> เคล็ดลับการใช้งาน
+        </h4>
+        <ul class="space-y-2 list-disc list-inside text-slate-600">
+          <li><strong>Hover บนคำ:</strong> ชี้เมาส์ที่ตัวอักษรจีนเพื่อดูความเชื่อมโยงกับคำแปลและตาราง</li>
+          <li><strong>Hover บนการ์ดไวยากรณ์:</strong> ชี้เมาส์ที่การ์ดไวยากรณ์เพื่อไฮไลต์กลุ่มคำที่ประกอบเป็นโครงสร้างนั้น</li>
+          <li><strong>คลิกที่คำ:</strong> กดที่ตัวอักษรจีนเพื่อฟังเสียงอ่านออกเสียงมาตรฐาน</li>
+          <li><strong>โหมดประหยัดโควตา:</strong> คำศัพท์สั้นๆ จะถูกค้นผ่าน Local Dictionary ในเครื่องทันที (0 API Request)</li>
+        </ul>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Settings Modal -->
+  <div id="settingsModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200 space-y-4">
+      <div class="flex items-center justify-between">
+        <h3 class="font-bold text-slate-900 text-lg">⚙️ ตั้งค่า Google Gemini API</h3>
+        <button onclick="toggleModal('settingsModal', false)" class="text-slate-400 hover:text-slate-600">✕</button>
+      </div>
+      <p class="text-xs text-slate-500 leading-relaxed">
+        ใส่ Gemini API Key เพื่อเปิดใช้งานการวิเคราะห์ประโยคยาวและโครงสร้างไวยากรณ์เชิงลึก (ฟรี 1,500 ครั้ง/วัน)
+      </p>
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 mb-1">Gemini API Key:</label>
+        <input id="apiKeyInput" type="password" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm font-mono focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="AIzaSy...">
+      </div>
+      <div class="text-xs text-slate-400">
+        ยังไม่มีคีย์? รับคีย์ฟรีได้ที่ <a href="https://aistudio.google.com/" target="_blank" class="text-blue-600 underline font-medium">Google AI Studio</a>
+      </div>
+      <div class="flex justify-end gap-2 pt-2">
+        <button onclick="toggleModal('settingsModal', false)" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 text-sm font-medium">ยกเลิก</button>
+        <button id="btnSaveSettings" class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium">บันทึกการตั้งค่า</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="dictionary.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
