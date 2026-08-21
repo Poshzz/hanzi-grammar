@@ -449,10 +449,10 @@ function updateBookmarkButton(isBookmarked) {
   const btn = document.getElementById("btnToggleBookmark");
   if (!btn) return;
   if (isBookmarked) {
-    btn.className = "p-2.5 rounded-xl bg-amber-50 border border-amber-300 text-amber-800 transition text-xs font-bold shadow-2xs";
+    btn.className = "px-4 py-3 rounded-2xl bg-amber-100/90 border border-amber-300/90 text-amber-900 transition text-xs font-extrabold shadow-2xs cursor-pointer";
     btn.innerHTML = `⭐ <span class="hidden sm:inline">บันทึกแล้ว</span>`;
   } else {
-    btn.className = "p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 transition text-xs font-bold";
+    btn.className = "px-4 py-3 rounded-2xl border border-slate-200/90 hover:bg-slate-50 text-slate-700 transition text-xs font-bold shadow-2xs cursor-pointer";
     btn.innerHTML = `☆ <span class="hidden sm:inline">บันทึก</span>`;
   }
 }
@@ -465,16 +465,16 @@ async function loadHistoryList() {
   container.innerHTML = "";
 
   if (!history || history.length === 0) {
-    container.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">ยังไม่มีประวัติการวิเคราะห์</p>`;
+    container.innerHTML = `<p class="text-xs text-slate-400 font-medium text-center py-6">ยังไม่มีประวัติการวิเคราะห์</p>`;
     return;
   }
 
   history.forEach(item => {
     const card = document.createElement("div");
-    card.className = "p-2.5 rounded-xl border border-slate-200/80 bg-slate-50/50 hover:bg-blue-50/50 hover:border-blue-200 transition cursor-pointer space-y-1";
+    card.className = "p-3 rounded-2xl border border-slate-200/80 bg-white/70 hover:bg-blue-50/80 hover:border-blue-200/80 transition-all duration-200 cursor-pointer space-y-1 shadow-2xs hover:scale-[1.02] active:scale-98";
     card.innerHTML = `
-      <p class="text-xs font-bold text-slate-900 truncate">${escapeHtml(item.originalText)}</p>
-      <p class="text-[11px] text-slate-500 truncate">${escapeHtml(item.naturalThaiTranslation)}</p>
+      <p class="text-xs font-extrabold text-slate-900 truncate">${escapeHtml(item.originalText)}</p>
+      <p class="text-[11px] font-medium text-slate-500 truncate">${escapeHtml(item.naturalThaiTranslation)}</p>
     `;
 
     card.addEventListener("click", () => {
@@ -496,19 +496,19 @@ function loadBookmarksList() {
   container.innerHTML = "";
 
   if (!bookmarks || bookmarks.length === 0) {
-    container.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">ยังไม่มีประโยคที่บันทึกไว้</p>`;
+    container.innerHTML = `<p class="text-xs text-slate-400 font-medium text-center py-6">ยังไม่มีประโยคที่บันทึกไว้</p>`;
     return;
   }
 
   bookmarks.forEach(item => {
     const card = document.createElement("div");
-    card.className = "p-2.5 rounded-xl border border-amber-200 bg-amber-50/40 hover:bg-amber-50 transition cursor-pointer space-y-1";
+    card.className = "p-3 rounded-2xl border border-amber-200/80 bg-amber-50/70 hover:bg-amber-100/70 transition-all duration-200 cursor-pointer space-y-1 shadow-2xs hover:scale-[1.02] active:scale-98";
     card.innerHTML = `
       <div class="flex items-center justify-between">
-        <p class="text-xs font-bold text-amber-950 truncate">${escapeHtml(item.originalText)}</p>
-        <span class="text-[10px] text-amber-700 bg-amber-100 px-1.5 py-0.2 rounded font-bold">⭐</span>
+        <p class="text-xs font-extrabold text-amber-950 truncate">${escapeHtml(item.originalText)}</p>
+        <span class="text-[10px] text-amber-700 bg-amber-200/80 px-2 py-0.2 rounded-full font-bold">⭐</span>
       </div>
-      <p class="text-[11px] text-slate-600 truncate">${escapeHtml(item.naturalThaiTranslation)}</p>
+      <p class="text-[11px] font-medium text-slate-600 truncate">${escapeHtml(item.naturalThaiTranslation)}</p>
     `;
 
     card.addEventListener("click", () => {
