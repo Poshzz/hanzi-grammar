@@ -7,7 +7,19 @@
   
   <!-- Tailwind CSS & Fonts -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="styles.css">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          boxShadow: {
+            '2xs': '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+            'glass': '0 16px 40px -10px rgba(15, 23, 42, 0.08), 0 0 0 1px rgba(255, 255, 255, 0.8) inset'
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="styles.css?v=20260821-spatial-v3">
 </head>
 <body class="text-slate-800 min-h-screen antialiased selection:bg-blue-200 relative overflow-x-hidden">
 
