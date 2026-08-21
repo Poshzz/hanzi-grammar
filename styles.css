@@ -1,0 +1,135 @@
+/* HanziGrammar Custom Styles & Typography */
+
+@layer base {
+  ruby {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    vertical-align: bottom;
+  }
+
+  rt {
+    font-size: 0.55em;
+    line-height: 1.1;
+    text-align: center;
+    user-select: all;
+  }
+}
+
+/* Syntax Color Scaffolding */
+.role-subject {
+  background-color: #f0f9ff;
+  color: #0369a1;
+  border-color: #7dd3fc;
+}
+.role-subject:hover {
+  background-color: #e0f2fe;
+  border-color: #38bdf8;
+}
+
+.role-predicate {
+  background-color: #ecfdf5;
+  color: #047857;
+  border-color: #6ee7b7;
+}
+.role-predicate:hover {
+  background-color: #d1fae5;
+  border-color: #34d399;
+}
+
+.role-object {
+  background-color: #fffbeb;
+  color: #b45309;
+  border-color: #fcd34d;
+}
+.role-object:hover {
+  background-color: #fef3c7;
+  border-color: #fbbf24;
+}
+
+.role-attributive {
+  background-color: #fefce8;
+  color: #854d0e;
+  border-color: #fde047;
+}
+.role-attributive:hover {
+  background-color: #fef9c3;
+  border-color: #facc15;
+}
+
+.role-adverbial {
+  background-color: #eef2ff;
+  color: #4338ca;
+  border-color: #a5b4fc;
+}
+.role-adverbial:hover {
+  background-color: #e0e7ff;
+  border-color: #818cf8;
+}
+
+.role-complement {
+  background-color: #f0fdfa;
+  color: #0f766e;
+  border-color: #5eead4;
+}
+.role-complement:hover {
+  background-color: #ccfbf1;
+  border-color: #2dd4bf;
+}
+
+.role-grammar-marker {
+  background-color: #faf5ff;
+  color: #7e22ce;
+  border-color: #d8b4fe;
+}
+.role-grammar-marker:hover {
+  background-color: #f3e8ff;
+  border-color: #c084fc;
+}
+
+.role-time-location {
+  background-color: #fff1f2;
+  color: #be123c;
+  border-color: #fda4af;
+}
+.role-time-location:hover {
+  background-color: #ffe4e6;
+  border-color: #fb7185;
+}
+
+/* Hanzi hover effect */
+.hanzi-char {
+  cursor: pointer;
+  transition: transform 0.15s ease, color 0.15s ease;
+  display: inline-block;
+}
+.hanzi-char:hover {
+  transform: translateY(-2px);
+  color: #2563eb;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.25s ease-out forwards;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
