@@ -3,44 +3,39 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HanziGrammar — ระบบแปลและแยกแยะไวยากรณ์จีนอัจฉริยะ (Gemini 2.0 Flash)</title>
+  <title>HanziGrammar — ระบบแปลและแยกแยะไวยากรณ์จีนอัจฉริยะ (Apple Spatial Edition)</title>
   
-  <!-- Google Fonts & Tailwind CSS -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Tailwind CSS & Fonts -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="styles.css">
-  
-  <style>
-    body {
-      font-family: 'Noto Sans Thai', 'Noto Sans SC', sans-serif;
-    }
-  </style>
 </head>
-<body class="bg-slate-100/90 text-slate-800 min-h-screen antialiased selection:bg-blue-200">
+<body class="text-slate-800 min-h-screen antialiased selection:bg-blue-200 relative overflow-x-hidden">
 
-  <!-- Top Navigation Bar -->
-  <header class="bg-white/90 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-30 shadow-xs">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+  <!-- Background Ambient Glow Orbs (VisionOS Style) -->
+  <div class="ambient-glow-1"></div>
+  <div class="ambient-glow-2"></div>
+
+  <!-- Top Floating Navigation Island -->
+  <header class="sticky top-4 z-40 max-w-7xl mx-auto px-4 sm:px-6">
+    <div class="glass-island rounded-full px-5 py-3 flex items-center justify-between shadow-lg shadow-slate-200/50">
       <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white text-xl font-bold shadow-md shadow-blue-500/20">
+        <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white text-xl font-bold shadow-md shadow-blue-500/25">
           汉
         </div>
         <div>
           <div class="flex items-center gap-2">
-            <h1 class="text-base sm:text-lg font-bold text-slate-900 tracking-tight">HanziGrammar</h1>
-            <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-blue-100 text-blue-800">
+            <h1 class="text-base font-bold text-slate-900 tracking-tight">HanziGrammar</h1>
+            <span class="text-[10px] uppercase font-bold tracking-wider px-2.5 py-0.5 rounded-full bg-blue-100/80 text-blue-800 border border-blue-200/60 shadow-2xs">
               Gemini 3.6 Flash
             </span>
           </div>
-          <p class="text-xs text-slate-500 hidden sm:block">แปลและวิเคราะห์ไวยากรณ์จีนเชิงลึกแบบ Interactive พร้อมระบบจับคู่สี</p>
+          <p class="text-[11px] text-slate-500 hidden sm:block">แปลและแจกแจงโครงสร้างไวยากรณ์จีน-ไทย เชิงลึกแบบ Interactive</p>
         </div>
       </div>
 
       <div class="flex items-center gap-2 sm:gap-3">
         <div id="apiKeyStatusBadge" class="cursor-pointer"></div>
-        <button id="btnOpenSettings" class="p-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition" title="ตั้งค่าระบบและ API Key">
+        <button id="btnOpenSettings" class="p-2.5 rounded-full text-slate-500 hover:text-slate-900 hover:bg-slate-100/80 transition" title="ตั้งค่าระบบและ API Key">
           ⚙️
         </button>
       </div>
@@ -48,48 +43,50 @@
   </header>
 
   <!-- Main Grid Layout -->
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 grid grid-cols-1 lg:grid-cols-12 gap-6 relative z-10">
     
     <!-- Left Column: Input & Results (8 cols) -->
     <div class="lg:col-span-8 space-y-6">
 
-      <!-- Input Card with Mode Tabs -->
-      <section class="bg-white rounded-2xl p-5 sm:p-6 shadow-xs border border-slate-200 space-y-4">
+      <!-- Floating Frosted Input Card -->
+      <section class="glass-card rounded-3xl p-5 sm:p-7 space-y-5">
         
-        <!-- Input Tabs: Text vs OCR Image -->
-        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-          <div class="flex items-center gap-2">
-            <button id="tabTextMode" class="tab-btn px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold bg-blue-50 text-blue-700 transition">
+        <!-- Input Header Tabs & Quota badge -->
+        <div class="flex items-center justify-between border-b border-slate-100/80 pb-3">
+          <div class="flex items-center gap-2 p-1 bg-slate-100/80 rounded-2xl">
+            <button id="tabTextMode" class="tab-btn px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-bold bg-white text-blue-700 shadow-2xs transition">
               ⌨️ ป้อนข้อความ
             </button>
-            <button id="tabImageMode" class="tab-btn px-3 py-1.5 rounded-xl text-xs sm:text-sm font-medium text-slate-600 hover:bg-slate-50 transition flex items-center gap-1.5">
+            <button id="tabImageMode" class="tab-btn px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-medium text-slate-600 hover:text-slate-900 transition flex items-center gap-1.5">
               <span>📷 อัปโหลดรูปภาพ (OCR)</span>
-              <span class="text-[10px] bg-purple-100 text-purple-700 px-1.5 py-0.2 rounded-md font-bold">1 Request</span>
+              <span class="text-[10px] bg-purple-100 text-purple-700 px-1.5 py-0.2 rounded-md font-bold">1 Req</span>
             </button>
           </div>
-          <span class="text-xs text-slate-400 hidden sm:inline">โควตาฟรี 1,500 ครั้ง/วัน</span>
+          <span class="text-xs text-slate-400 font-medium hidden sm:inline">โควตาฟรี 1,500 ครั้ง/วัน</span>
         </div>
 
-        <!-- Language Mode Selector -->
-        <div class="flex items-center gap-1.5 p-1 bg-slate-100/80 rounded-xl w-fit text-xs">
-          <button id="langAutoBtn" class="lang-btn px-3 py-1 rounded-lg font-bold bg-white text-blue-700 shadow-2xs transition">
+        <!-- Language Direction Segmented Capsule -->
+        <div class="flex flex-wrap items-center gap-1.5 p-1 bg-slate-100/90 rounded-2xl w-fit text-xs border border-slate-200/50">
+          <button id="langAutoBtn" class="lang-btn px-3.5 py-1.5 rounded-xl font-bold bg-white text-blue-700 shadow-2xs transition">
             🌐 ตรวจจับอัตโนมัติ (Auto)
           </button>
-          <button id="langZhThBtn" class="lang-btn px-3 py-1 rounded-lg font-medium text-slate-600 hover:text-slate-900 transition">
+          <button id="langZhThBtn" class="lang-btn px-3.5 py-1.5 rounded-xl font-medium text-slate-600 hover:text-slate-900 transition">
             🇨🇳 ➔ 🇹🇭 จีน เป็น ไทย
           </button>
-          <button id="langThZhBtn" class="lang-btn px-3 py-1 rounded-lg font-medium text-slate-600 hover:text-slate-900 transition">
+          <button id="langThZhBtn" class="lang-btn px-3.5 py-1.5 rounded-xl font-medium text-slate-600 hover:text-slate-900 transition">
             🇹🇭 ➔ 🇨🇳 ไทย เป็น จีน
           </button>
         </div>
 
         <!-- Text Input View -->
-        <div id="textInputSection" class="space-y-3">
-          <textarea id="inputText" class="w-full p-4 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none text-lg sm:text-xl font-medium text-slate-900 placeholder:text-slate-400 resize-none transition bg-slate-50/50" rows="3" placeholder="พิมพ์หรือวางข้อความภาษาจีน หรือ ภาษาไทย เช่น '我昨天把那本书看完了。' หรือ 'เมื่อวานนี้ฉันอ่านหนังสือจบแล้ว'"></textarea>
+        <div id="textInputSection" class="space-y-3.5">
+          <div class="relative">
+            <textarea id="inputText" class="w-full p-4 sm:p-5 border border-slate-200/80 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none text-lg sm:text-xl font-medium text-slate-900 placeholder:text-slate-400 resize-none transition bg-white/60 shadow-inner" rows="3" placeholder="พิมพ์หรือวางข้อความภาษาจีน หรือ ภาษาไทย เช่น '我昨天把那本书看完了。' หรือ 'เมื่อวานนี้ฉันอ่านหนังสือจบแล้ว'"></textarea>
+          </div>
 
-          <!-- Preset Sentences -->
+          <!-- Preset Sentences (Pill Buttons) -->
           <div class="flex flex-wrap items-center gap-1.5 text-xs">
-            <span class="text-slate-400 font-medium mr-1">ตัวอย่างประโยค:</span>
+            <span class="text-slate-400 font-semibold mr-1">ตัวอย่าง:</span>
             <div id="presetButtonsContainer" class="flex flex-wrap gap-1.5">
               <!-- Dynamically populated presets -->
             </div>
@@ -98,48 +95,48 @@
 
         <!-- Image OCR Input View (Hidden by default) -->
         <div id="imageInputSection" class="hidden space-y-3">
-          <div id="imageDropzone" class="border-2 border-dashed border-slate-300 hover:border-blue-500 bg-slate-50/70 hover:bg-blue-50/30 rounded-2xl p-6 sm:p-8 text-center cursor-pointer transition flex flex-col items-center justify-center space-y-2">
+          <div id="imageDropzone" class="border-2 border-dashed border-slate-300 hover:border-blue-500 bg-white/50 hover:bg-blue-50/40 rounded-3xl p-6 sm:p-8 text-center cursor-pointer transition flex flex-col items-center justify-center space-y-2.5">
             <input type="file" id="imageFileInput" accept="image/*" class="hidden">
-            <span class="text-3xl">🖼️</span>
-            <p class="text-sm font-semibold text-slate-700">ลากและวางรูปภาพที่นี่ หรือคลิกเพื่อเลือกไฟล์</p>
-            <p class="text-xs text-slate-400">รองรับไฟล์ PNG, JPG, WEBP หรือกด <kbd class="px-1.5 py-0.5 bg-white border border-slate-300 rounded text-slate-600 font-mono text-[10px]">Ctrl+V</kbd> เพื่อวางภาพจาก Clipboard</p>
+            <span class="text-4xl">🖼️</span>
+            <p class="text-sm font-bold text-slate-700">ลากและวางรูปภาพที่นี่ หรือคลิกเพื่อเลือกไฟล์</p>
+            <p class="text-xs text-slate-400">รองรับไฟล์ PNG, JPG, WEBP หรือกด <kbd class="px-2 py-0.5 bg-white border border-slate-300 rounded-lg text-slate-600 font-mono text-[10px] shadow-2xs">Ctrl+V</kbd> เพื่อวางภาพจาก Clipboard</p>
           </div>
 
-          <div id="imagePreviewContainer" class="hidden relative p-3 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between gap-4">
+          <div id="imagePreviewContainer" class="hidden relative p-3 bg-white/80 rounded-2xl border border-slate-200 flex items-center justify-between gap-4 shadow-xs">
             <div class="flex items-center gap-3 overflow-hidden">
               <img id="imagePreview" src="" alt="OCR Preview" class="w-16 h-16 object-cover rounded-xl border border-slate-200 shadow-xs">
               <div>
                 <p class="text-xs font-bold text-slate-800">แนบรูปภาพสำเร็จ</p>
-                <p class="text-[11px] text-slate-500">Gemini 2.0 Flash จะสกัดข้อความจีนและวิเคราะห์ไวยากรณ์</p>
+                <p class="text-[11px] text-slate-500">Gemini 3.6 Flash จะสกัดข้อความจีนและวิเคราะห์ไวยากรณ์</p>
               </div>
             </div>
-            <button id="btnClearImage" class="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition text-xs font-semibold">
+            <button id="btnClearImage" class="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition text-xs font-bold">
               ลบรูปภาพ ✕
             </button>
           </div>
         </div>
 
-        <!-- Role Color Legend -->
-        <div class="p-3 bg-slate-50/80 rounded-xl border border-slate-200/70 flex flex-wrap items-center gap-2 sm:gap-3 text-xs">
-          <span class="font-semibold text-slate-500">รหัสสีไวยากรณ์:</span>
-          <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-sky-500"></span> ประธาน</span>
-          <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> กริยา</span>
-          <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> กรรม</span>
-          <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-yellow-500"></span> ขยาย</span>
-          <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-teal-500"></span> ส่วนเติมเต็ม</span>
-          <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-purple-500"></span> ไวยากรณ์</span>
-          <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span> เวลา/สถานที่</span>
+        <!-- Role Color Legend Pills -->
+        <div class="p-3 bg-slate-100/60 rounded-2xl border border-slate-200/50 flex flex-wrap items-center gap-2 sm:gap-3 text-xs">
+          <span class="font-bold text-slate-500">รหัสสี:</span>
+          <span class="flex items-center gap-1.5 px-2 py-0.5 bg-white/80 rounded-full text-slate-700 shadow-2xs"><span class="w-2.5 h-2.5 rounded-full bg-sky-500"></span> ประธาน</span>
+          <span class="flex items-center gap-1.5 px-2 py-0.5 bg-white/80 rounded-full text-slate-700 shadow-2xs"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> กริยา</span>
+          <span class="flex items-center gap-1.5 px-2 py-0.5 bg-white/80 rounded-full text-slate-700 shadow-2xs"><span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> กรรม</span>
+          <span class="flex items-center gap-1.5 px-2 py-0.5 bg-white/80 rounded-full text-slate-700 shadow-2xs"><span class="w-2.5 h-2.5 rounded-full bg-yellow-500"></span> ขยาย</span>
+          <span class="flex items-center gap-1.5 px-2 py-0.5 bg-white/80 rounded-full text-slate-700 shadow-2xs"><span class="w-2.5 h-2.5 rounded-full bg-teal-500"></span> ส่วนเติมเต็ม</span>
+          <span class="flex items-center gap-1.5 px-2 py-0.5 bg-white/80 rounded-full text-slate-700 shadow-2xs"><span class="w-2.5 h-2.5 rounded-full bg-purple-500"></span> ไวยากรณ์</span>
+          <span class="flex items-center gap-1.5 px-2 py-0.5 bg-white/80 rounded-full text-slate-700 shadow-2xs"><span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span> เวลา/สถานที่</span>
         </div>
 
         <!-- Controls and Analyze Action Bar -->
         <div class="flex items-center justify-between pt-2 border-t border-slate-100">
           <div class="flex items-center gap-2">
-            <button id="btnTogglePinyin" class="px-3 py-1.5 rounded-xl text-xs font-semibold border border-slate-200 hover:bg-slate-50 transition bg-blue-50 text-blue-700">
+            <button id="btnTogglePinyin" class="px-3.5 py-1.5 rounded-xl text-xs font-bold border border-slate-200/80 hover:bg-slate-50 transition bg-blue-50 text-blue-700 shadow-2xs">
               พินอิน (Pinyin)
             </button>
-            <div class="flex items-center gap-1 text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded-xl">
-              <span>ความเร็วเสียง:</span>
-              <select id="audioSpeedSelect" class="bg-transparent font-semibold text-slate-700 outline-none cursor-pointer">
+            <div class="flex items-center gap-1 text-xs text-slate-500 bg-slate-100/80 px-2.5 py-1 rounded-xl">
+              <span class="font-medium">ความเร็วเสียง:</span>
+              <select id="audioSpeedSelect" class="bg-transparent font-bold text-slate-700 outline-none cursor-pointer">
                 <option value="0.75">0.75x (ช้า)</option>
                 <option value="0.85" selected>0.85x (แนะนำ)</option>
                 <option value="1.0">1.0x (ปกติ)</option>
@@ -148,32 +145,49 @@
             </div>
           </div>
 
-          <button id="btnAnalyze" class="bg-blue-600 hover:bg-blue-700 active:scale-98 text-white px-6 py-2.5 rounded-xl font-medium text-sm transition shadow-sm hover:shadow flex items-center gap-2 cursor-pointer">
+          <button id="btnAnalyze" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-98 text-white px-7 py-3 rounded-2xl font-bold text-sm transition-all shadow-md shadow-blue-500/25 hover:shadow-lg hover:shadow-blue-500/35 flex items-center gap-2 cursor-pointer">
             <span id="analyzeSpinner" class="hidden w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
             <span id="btnAnalyzeText">วิเคราะห์ประโยค</span>
           </button>
         </div>
       </section>
 
+      <!-- Skeleton Shimmer Placeholder (Shown while analyzing) -->
+      <div id="skeletonLoadingContainer" class="hidden glass-card rounded-3xl p-6 space-y-4">
+        <div class="flex items-center justify-between">
+          <div class="w-32 h-6 rounded-lg skeleton-shimmer"></div>
+          <div class="w-20 h-6 rounded-lg skeleton-shimmer"></div>
+        </div>
+        <div class="w-3/4 h-10 rounded-xl skeleton-shimmer"></div>
+        <div class="w-1/2 h-6 rounded-lg skeleton-shimmer"></div>
+        <div class="grid grid-cols-4 gap-3 pt-4">
+          <div class="h-20 rounded-2xl skeleton-shimmer"></div>
+          <div class="h-20 rounded-2xl skeleton-shimmer"></div>
+          <div class="h-20 rounded-2xl skeleton-shimmer"></div>
+          <div class="h-20 rounded-2xl skeleton-shimmer"></div>
+        </div>
+      </div>
+
       <!-- Results Container (Hidden until analyzed) -->
       <div id="resultsContainer" class="hidden space-y-6">
 
-        <!-- Result 1: Dual Translation & Audio Controls -->
-        <section class="bg-white rounded-2xl p-6 shadow-xs border border-slate-200 space-y-5 animate-fade-in">
+        <!-- Result 1: Dual Translation & Sentence Card -->
+        <section class="glass-card rounded-3xl p-6 sm:p-8 space-y-6 animate-fade-scale">
           
-          <div class="flex items-start justify-between gap-4 border-b border-slate-100 pb-4">
-            <div class="space-y-1">
+          <div class="flex items-start justify-between gap-4 border-b border-slate-100/80 pb-5">
+            <div class="space-y-1.5">
               <div class="flex items-center gap-2">
-                <span class="text-xs uppercase tracking-wider font-bold text-slate-400">คำแปลภาษาไทย</span>
-                <span id="sentenceTypeBadge" class="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200"></span>
+                <span class="text-[11px] uppercase tracking-wider font-bold text-slate-400">คำแปลภาษาไทย</span>
+                <span id="sentenceTypeBadge" class="text-xs font-bold px-3 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200/80 shadow-2xs"></span>
                 <span id="localSourceBadge" class="hidden text-xs bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md font-bold">Local 0 API</span>
               </div>
+              
               <!-- Natural Translation -->
-              <h2 id="naturalTranslation" class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight leading-snug"></h2>
+              <h2 id="naturalTranslation" class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight leading-snug"></h2>
               
               <!-- Literal Gloss Translation -->
               <div class="pt-2">
-                <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-amber-50/70 border border-amber-200/80 rounded-xl text-xs sm:text-sm text-amber-900">
+                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 bg-amber-50/80 border border-amber-200/80 rounded-xl text-xs sm:text-sm text-amber-900 shadow-2xs">
                   <span class="font-bold text-amber-700">แปลตรงตัว (Gloss):</span>
                   <span id="literalTranslation" class="font-medium"></span>
                 </div>
@@ -181,10 +195,10 @@
             </div>
 
             <div class="flex items-center gap-2 shrink-0">
-              <button id="btnPlaySentenceAudio" class="p-2.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 transition flex items-center gap-1.5 text-xs font-bold" title="ฟังเสียงอ่านทั้งประโยค">
+              <button id="btnPlaySentenceAudio" class="p-3 rounded-2xl bg-blue-50 hover:bg-blue-100 text-blue-700 transition flex items-center gap-1.5 text-xs font-bold shadow-2xs cursor-pointer" title="ฟังเสียงอ่านทั้งประโยค">
                 <span>🔊</span> <span class="hidden sm:inline">ฟังเสียง</span>
               </button>
-              <button id="btnToggleBookmark" class="p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 transition text-xs font-bold" title="บันทึกประโยคนี้">
+              <button id="btnToggleBookmark" class="p-3 rounded-2xl border border-slate-200 hover:bg-slate-50 text-slate-600 transition text-xs font-bold shadow-2xs cursor-pointer" title="บันทึกประโยคนี้">
                 ⭐ <span class="hidden sm:inline">บันทึก</span>
               </button>
             </div>
@@ -194,42 +208,42 @@
           <div>
             <div class="flex items-center justify-between mb-3">
               <span class="text-xs uppercase tracking-wider font-bold text-slate-400">
-                โครงสร้างประโยค (Hover / แตะ เพื่อดูความเชื่อมโยง)
+                โครงสร้างประโยค (Hover / แตะ เพื่อส่องแสงเชื่อมโยง)
               </span>
             </div>
-            <div id="sentenceTokensContainer" class="flex flex-wrap items-end gap-2 sm:gap-3 p-4 sm:p-6 bg-slate-50/70 rounded-2xl border border-slate-200">
+            <div id="sentenceTokensContainer" class="flex flex-wrap items-end gap-2.5 sm:gap-3.5 p-5 sm:p-7 bg-slate-50/80 rounded-3xl border border-slate-200/80">
               <!-- Dynamically rendered tokens -->
             </div>
           </div>
 
           <!-- Grammar Summary Note -->
-          <div id="grammarSummaryContainer" class="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs sm:text-sm text-slate-700 leading-relaxed">
+          <div id="grammarSummaryContainer" class="p-4 sm:p-5 rounded-2xl bg-slate-50/90 border border-slate-200/80 text-xs sm:text-sm text-slate-700 leading-relaxed">
             <span class="font-bold text-slate-900">💡 คำอธิบายภาพรวม: </span>
             <span id="grammarSummaryText"></span>
           </div>
         </section>
 
         <!-- Result 2: Grammar Points -->
-        <section id="grammarSection" class="bg-white rounded-2xl p-6 shadow-xs border border-slate-200 space-y-4 animate-fade-in">
+        <section id="grammarSection" class="glass-card rounded-3xl p-6 sm:p-8 space-y-4 animate-fade-scale">
           <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
             <span>📖</span> จุดไวยากรณ์สำคัญในประโยค (Grammar Points)
           </h3>
-          <div id="grammarCardsContainer" class="grid grid-cols-1 gap-3">
+          <div id="grammarCardsContainer" class="grid grid-cols-1 gap-3.5">
             <!-- Dynamically generated grammar cards -->
           </div>
         </section>
 
         <!-- Result 3: Word-by-Word Lexical Table -->
-        <section class="bg-white rounded-2xl p-6 shadow-xs border border-slate-200 space-y-4 animate-fade-in">
-          <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
+        <section class="glass-card rounded-3xl p-6 sm:p-8 space-y-4 animate-fade-scale">
+          <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100/80 pb-4">
             <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
               <span>📝</span> คำแปลและหน้าที่คำรายตัว (Lexical Table)
             </h3>
             <div class="flex items-center gap-2">
-              <button id="btnCopyMarkdown" class="px-3 py-1.5 text-xs font-semibold border border-slate-200 rounded-xl hover:bg-slate-50 text-slate-700 transition flex items-center gap-1">
+              <button id="btnCopyMarkdown" class="px-3.5 py-1.5 text-xs font-bold border border-slate-200 rounded-xl hover:bg-slate-50 text-slate-700 transition flex items-center gap-1 shadow-2xs cursor-pointer">
                 📋 คัดลอก Markdown
               </button>
-              <button id="btnExportAnki" class="px-3 py-1.5 text-xs font-semibold bg-indigo-50 border border-indigo-200 rounded-xl hover:bg-indigo-100 text-indigo-700 transition flex items-center gap-1">
+              <button id="btnExportAnki" class="px-3.5 py-1.5 text-xs font-bold bg-indigo-50 border border-indigo-200 rounded-xl hover:bg-indigo-100 text-indigo-700 transition flex items-center gap-1 shadow-2xs cursor-pointer">
                 🗂️ ส่งออก Anki Deck
               </button>
             </div>
@@ -238,14 +252,14 @@
           <div class="overflow-x-auto">
             <table class="w-full text-left text-sm border-collapse">
               <thead>
-                <tr class="border-b border-slate-200 text-slate-400 font-semibold text-xs uppercase tracking-wider">
-                  <th class="py-2.5 px-3 sm:px-4">คำศัพท์</th>
-                  <th class="py-2.5 px-3 sm:px-4">พินอิน</th>
-                  <th class="py-2.5 px-3 sm:px-4">ชนิดคำ</th>
-                  <th class="py-2.5 px-3 sm:px-4">หน้าที่</th>
-                  <th class="py-2.5 px-3 sm:px-4">ความหมายบริบท</th>
-                  <th class="py-2.5 px-3 sm:px-4 text-center">ระดับ</th>
-                  <th class="py-2.5 px-3 sm:px-4 text-right">การกระทำ</th>
+                <tr class="border-b border-slate-200 text-slate-400 font-bold text-[11px] uppercase tracking-wider">
+                  <th class="py-3 px-3 sm:px-4">คำศัพท์</th>
+                  <th class="py-3 px-3 sm:px-4">พินอิน</th>
+                  <th class="py-3 px-3 sm:px-4">ชนิดคำ</th>
+                  <th class="py-3 px-3 sm:px-4">หน้าที่</th>
+                  <th class="py-3 px-3 sm:px-4">ความหมายบริบท</th>
+                  <th class="py-3 px-3 sm:px-4 text-center">ระดับ</th>
+                  <th class="py-3 px-3 sm:px-4 text-right">การกระทำ</th>
                 </tr>
               </thead>
               <tbody id="lexicalTableBody">
@@ -262,34 +276,34 @@
     <div class="lg:col-span-4 space-y-6">
       
       <!-- History & Bookmarks Drawer -->
-      <section class="bg-white rounded-2xl p-5 shadow-xs border border-slate-200 space-y-3">
-        <div class="flex items-center justify-between border-b border-slate-100 pb-2">
-          <div class="flex items-center gap-2">
-            <button id="tabHistory" class="text-xs font-bold px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 transition">
-              🕒 ประวัติการวิเคราะห์
+      <section class="glass-card rounded-3xl p-5 sm:p-6 space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-100/80 pb-3">
+          <div class="flex items-center gap-1.5 p-1 bg-slate-100/80 rounded-xl">
+            <button id="tabHistory" class="text-xs font-bold px-3 py-1 rounded-lg bg-white text-blue-700 shadow-2xs transition">
+              🕒 ประวัติ
             </button>
-            <button id="tabBookmarks" class="text-xs font-medium px-2.5 py-1 rounded-lg text-slate-500 hover:bg-slate-50 transition">
+            <button id="tabBookmarks" class="text-xs font-medium px-3 py-1 rounded-lg text-slate-500 hover:text-slate-900 transition">
               ⭐ ที่บันทึกไว้
             </button>
           </div>
-          <span class="text-[11px] text-slate-400">IndexedDB 0ms</span>
+          <span class="text-[11px] text-slate-400 font-medium">IndexedDB 0ms</span>
         </div>
 
-        <div id="historyListContainer" class="space-y-2 max-h-80 overflow-y-auto pr-1">
+        <div id="historyListContainer" class="space-y-2.5 max-h-80 overflow-y-auto pr-1">
           <!-- Dynamically populated history -->
         </div>
 
-        <div id="bookmarksListContainer" class="hidden space-y-2 max-h-80 overflow-y-auto pr-1">
+        <div id="bookmarksListContainer" class="hidden space-y-2.5 max-h-80 overflow-y-auto pr-1">
           <!-- Dynamically populated bookmarks -->
         </div>
       </section>
 
       <!-- Interactive Tips Card -->
-      <section class="bg-gradient-to-br from-blue-50 to-indigo-50/50 rounded-2xl p-5 border border-blue-100 text-xs space-y-3 text-slate-700">
+      <section class="glass-card rounded-3xl p-5 sm:p-6 text-xs space-y-3.5 text-slate-700 bg-gradient-to-br from-blue-50/60 to-indigo-50/40">
         <h4 class="font-bold text-blue-900 text-sm flex items-center gap-1.5">
           <span>💡</span> เคล็ดลับการเรียนรู้
         </h4>
-        <ul class="space-y-2 list-disc list-inside text-slate-600 leading-relaxed">
+        <ul class="space-y-2.5 list-disc list-inside text-slate-600 leading-relaxed">
           <li><strong>Hover / แตะบนคำ:</strong> ส่องแสงเชื่อมโยงระหว่างตัวอักษรจีนกับตารางคำแปล</li>
           <li><strong>Hover / แตะที่การ์ดไวยากรณ์:</strong> ไฮไลต์กลุ่มคำที่ประกอบเป็นโครงสร้างนั้น</li>
           <li><strong>คลิกที่ตัวอักษรจีน:</strong> เปิดดูแอนิเมชันลำดับขีด (Stroke Order) และฝึกคัด</li>
@@ -300,22 +314,22 @@
     </div>
   </main>
 
-  <!-- Settings Modal -->
-  <div id="settingsModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
-    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200 space-y-4 animate-fade-in">
-      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+  <!-- Settings Modal (Glassmorphism VisionOS Style) -->
+  <div id="settingsModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-md p-4 animate-fade-scale">
+    <div class="glass-card rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl border border-white/80 space-y-5">
+      <div class="flex items-center justify-between border-b border-slate-100/80 pb-3">
         <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
           <span>⚙️</span> ตั้งค่าระบบ (Settings)
         </h3>
-        <button id="btnCloseSettings" class="text-slate-400 hover:text-slate-700 text-lg">✕</button>
+        <button id="btnCloseSettings" class="text-slate-400 hover:text-slate-700 text-lg cursor-pointer">✕</button>
       </div>
 
-      <div class="space-y-3">
+      <div class="space-y-3.5">
         <div>
           <label class="text-xs font-bold text-slate-700 block mb-1">
             Google Gemini API Key (โหมดส่วนตัว / BYOK):
           </label>
-          <input type="password" id="apiKeyInput" class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm font-mono" placeholder="AIzaSy... (เว้นว่างได้ถ้ามี Cloudflare Secret)">
+          <input type="password" id="apiKeyInput" class="w-full p-3 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm font-mono bg-white/70 shadow-inner" placeholder="AIzaSy... (เว้นว่างได้ถ้ามี Cloudflare Secret)">
           <p class="text-[11px] text-slate-400 mt-1">
             หาก Deploy บน Cloudflare Pages พร้อมตั้งค่า Secret <code class="bg-slate-100 px-1 rounded">GEMINI_API_KEY</code> แล้ว ไม่จำเป็นต้องกรอกช่องนี้
           </p>
@@ -325,17 +339,17 @@
           <label class="text-xs font-bold text-slate-700 block mb-1">
             Custom Cloudflare Proxy Endpoint (ไม่บังคับ):
           </label>
-          <input type="text" id="customEndpointInput" class="w-full p-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none text-xs font-mono" placeholder="/api/analyze หรือ https://my-worker.workers.dev/api/analyze">
+          <input type="text" id="customEndpointInput" class="w-full p-3 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:outline-none text-xs font-mono bg-white/70" placeholder="/api/analyze หรือ https://my-worker.workers.dev/api/analyze">
         </div>
 
-        <div class="p-3 bg-blue-50 rounded-xl border border-blue-200 text-xs text-blue-900 space-y-1">
+        <div class="p-3.5 bg-blue-50/80 rounded-2xl border border-blue-200/80 text-xs text-blue-900 space-y-1">
           <p class="font-bold">☁️ รองรับ Cloudflare Secret 100%</p>
           <p>ซ่อน API Key ไว้ที่ Cloudflare Edge Server (Secrets) ปลอดภัย 100% คีย์ไม่หลุดฝั่งเบราว์เซอร์</p>
         </div>
       </div>
 
       <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
-        <button id="btnSaveSettings" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-xl text-sm font-medium transition cursor-pointer">
+        <button id="btnSaveSettings" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-2xl text-sm font-bold transition cursor-pointer shadow-md shadow-blue-500/25">
           บันทึกการตั้งค่า
         </button>
       </div>
@@ -343,24 +357,24 @@
   </div>
 
   <!-- HanziWriter Stroke Order Modal -->
-  <div id="strokeModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
-    <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl border border-slate-200 space-y-4 text-center animate-fade-in">
-      <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+  <div id="strokeModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-md p-4 animate-fade-scale">
+    <div class="glass-card rounded-3xl max-w-sm w-full p-6 sm:p-7 shadow-2xl border border-white/80 space-y-4 text-center">
+      <div class="flex items-center justify-between border-b border-slate-100/80 pb-2">
         <h3 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
-          <span>✍️</span> ลำดับขีดอักษรจีน: <span id="strokeTargetChar" class="text-xl text-blue-600 font-bold ml-1"></span>
+          <span>✍️</span> ลำดับขีดอักษรจีน: <span id="strokeTargetChar" class="text-2xl text-blue-600 font-bold ml-1"></span>
         </h3>
-        <button id="btnCloseStrokeModal" class="text-slate-400 hover:text-slate-700 text-lg">✕</button>
+        <button id="btnCloseStrokeModal" class="text-slate-400 hover:text-slate-700 text-lg cursor-pointer">✕</button>
       </div>
 
-      <div id="hanziWriterTarget" class="w-[200px] h-[200px] mx-auto bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-center shadow-inner">
+      <div id="hanziWriterTarget" class="w-[200px] h-[200px] mx-auto bg-slate-50/80 rounded-2xl border border-slate-200 flex items-center justify-center shadow-inner">
         <!-- HanziWriter SVG Injected Here -->
       </div>
 
       <div class="flex items-center justify-center gap-2 pt-2">
-        <button id="btnAnimateStroke" class="px-4 py-2 rounded-xl bg-blue-50 text-blue-700 hover:bg-blue-100 text-xs font-bold transition">
+        <button id="btnAnimateStroke" class="px-5 py-2.5 rounded-2xl bg-blue-50 text-blue-700 hover:bg-blue-100 text-xs font-bold transition shadow-2xs cursor-pointer">
           ▶ ดูแอนิเมชัน
         </button>
-        <button id="btnQuizStroke" class="px-4 py-2 rounded-xl bg-emerald-50 text-emerald-700 hover:bg-emerald-100 text-xs font-bold transition">
+        <button id="btnQuizStroke" class="px-5 py-2.5 rounded-2xl bg-emerald-50 text-emerald-700 hover:bg-emerald-100 text-xs font-bold transition shadow-2xs cursor-pointer">
           ✏️ ฝึกคัดลายมือ
         </button>
       </div>

@@ -241,7 +241,7 @@ function renderPresets() {
   container.innerHTML = "";
   DEMO_PRESETS.forEach((preset) => {
     const btn = document.createElement("button");
-    btn.className = "btn-preset px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-blue-50 hover:text-blue-700 text-slate-700 transition text-xs font-medium flex items-center gap-1 cursor-pointer";
+    btn.className = "btn-preset px-3 py-1 rounded-xl bg-white/80 hover:bg-blue-50/80 hover:text-blue-700 text-slate-700 border border-slate-200/80 hover:border-blue-200 transition-all duration-200 text-xs font-semibold flex items-center gap-1.5 cursor-pointer shadow-2xs hover:scale-102 active:scale-98";
     btn.innerHTML = `<span>${preset.title}</span>`;
     
     btn.addEventListener("click", () => {
@@ -527,11 +527,20 @@ function setLoading(loading) {
   const btn = document.getElementById("btnAnalyze");
   const spinner = document.getElementById("analyzeSpinner");
   const btnText = document.getElementById("btnAnalyzeText");
+  const skeleton = document.getElementById("skeletonLoadingContainer");
+  const results = document.getElementById("resultsContainer");
 
   if (btn && spinner && btnText) {
     btn.disabled = loading;
     spinner.classList.toggle("hidden", !loading);
     btnText.textContent = loading ? "กำลังวิเคราะห์..." : "วิเคราะห์ประโยค";
+  }
+
+  if (skeleton) {
+    skeleton.classList.toggle("hidden", !loading);
+    if (loading && results) {
+      results.classList.add("hidden");
+    }
   }
 }
 

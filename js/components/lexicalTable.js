@@ -1,4 +1,4 @@
-// Lexical Table Component (Word-by-Word Syntax Table & Actions)
+// Lexical Table Component (Apple Clean Design with Rounded Rows & Fluid Actions)
 
 import { ROLE_DEFINITIONS } from "../config.js";
 import { speechService } from "../services/speech.js";
@@ -14,16 +14,16 @@ export function renderLexicalTable(tbody, tokens, options = {}) {
 
   if (!tokens || tokens.length === 0) return;
 
-  tokens.forEach((token) => {
+  tokens.forEach((token, index) => {
     const roleDef = ROLE_DEFINITIONS[token.syntacticRole] || ROLE_DEFINITIONS.predicate;
     const tr = document.createElement("tr");
     tr.id = `lexical_row_${token.id}`;
-    tr.className = "border-b border-slate-100 hover:bg-slate-50/80 transition-colors duration-150 cursor-pointer text-xs sm:text-sm";
+    tr.className = "border-b border-slate-100/80 hover:bg-slate-50/90 transition-all duration-150 cursor-pointer text-xs sm:text-sm";
     tr.setAttribute("data-token-id", token.id);
 
     // Active highlight state
     if (options.activeTokenId === token.id) {
-      tr.classList.add("bg-blue-50/80", "font-medium");
+      tr.classList.add("bg-blue-50/90", "font-medium");
     }
 
     tr.innerHTML = `
@@ -34,31 +34,31 @@ export function renderLexicalTable(tbody, tokens, options = {}) {
         ${escapeHtml(token.pinyin)}
       </td>
       <td class="py-3 px-3 sm:px-4 text-slate-600">
-        <span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-xs">
+        <span class="px-2.5 py-0.5 rounded-lg bg-slate-100/80 text-slate-700 text-xs font-medium">
           ${escapeHtml(token.pos)}
         </span>
       </td>
       <td class="py-3 px-3 sm:px-4">
-        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold ${roleDef.bgLight} ${roleDef.textLight}">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${roleDef.bgLight} ${roleDef.textLight} shadow-2xs">
           <span class="w-1.5 h-1.5 rounded-full ${roleDef.dotColor}"></span>
           ${escapeHtml(token.roleLabelTh)}
         </span>
       </td>
-      <td class="py-3 px-3 sm:px-4 text-slate-800">
+      <td class="py-3 px-3 sm:px-4 text-slate-800 font-medium">
         ${escapeHtml(token.contextualMeaningTh)}
       </td>
       <td class="py-3 px-3 sm:px-4 text-center">
         ${token.hskLevel ? `
-          <span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-blue-100 text-blue-800">
+          <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-100/80 text-blue-800 shadow-2xs">
             HSK ${token.hskLevel}
           </span>
         ` : `<span class="text-slate-300">-</span>`}
       </td>
       <td class="py-3 px-3 sm:px-4 text-right whitespace-nowrap">
-        <button class="btn-table-speech p-1.5 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-blue-50 transition" title="ฟังเสียงอ่าน">
+        <button class="btn-table-speech p-1.5 rounded-xl text-slate-500 hover:text-blue-600 hover:bg-blue-50 transition" title="ฟังเสียงอ่าน">
           🔊
         </button>
-        <button class="btn-table-stroke p-1.5 rounded-lg text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 transition" title="ดูลำดับขีด">
+        <button class="btn-table-stroke p-1.5 rounded-xl text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 transition" title="ดูลำดับขีด">
           ✍️
         </button>
       </td>
