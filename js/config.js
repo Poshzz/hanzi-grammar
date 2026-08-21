@@ -1,7 +1,7 @@
 // HanziGrammar - Global Configuration & Constants (Bidirectional Chinese <-> Thai)
 
 export const CONFIG = {
-  GEMINI_MODEL: "gemini-2.0-flash",
+  GEMINI_MODEL: "gemini-2.5-flash",
   GEMINI_ENDPOINT_BASE: "https://generativelanguage.googleapis.com/v1beta/models/",
   CLOUDFLARE_PROXY_ENDPOINT: "/api/analyze",
   DEFAULT_SPEECH_RATE: 0.85,
