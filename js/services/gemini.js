@@ -1,29 +1,27 @@
-// Gemini 2.0 Flash Client Service (Supports Cloudflare Secret Proxy & Direct BYOK)
+// Gemini 2.0 Flash Client Service (Bidirectional Chinese <-> Thai)
 
 import { CONFIG, GEMINI_RESPONSE_SCHEMA } from "../config.js";
 
 /**
- * Analyze Chinese text or image with Gemini 2.0 Flash
- * Automatically routes through Cloudflare Secret Proxy (/api/analyze) or direct Google Gemini API
+ * Analyze Chinese or Thai text / image with Gemini 2.0 Flash
  * @param {Object} params
  * @param {string} [params.apiKey]
  * @param {string} [params.customEndpoint]
  * @param {string} [params.text]
+ * @param {string} [params.langMode] "auto" | "zh" | "th"
  * @param {Object} [params.image] { mimeType: string, base64Data: string }
  * @returns {Promise<Object>}
  */
-export async function analyzeChineseContent({ apiKey, customEndpoint, text, image }) {
-  // Determine if we should use Cloudflare Proxy endpoint
+export async function analyzeChineseContent({ apiKey, customEndpoint, text, langMode = "auto", image }) {
   const isHostedOnWeb = window.location.protocol.startsWith("http");
   const proxyEndpoint = customEndpoint || (isHostedOnWeb ? CONFIG.CLOUDFLARE_PROXY_ENDPOINT : null);
 
   // 1. Try Cloudflare Worker / Pages Proxy First if available
   if (proxyEndpoint) {
     try {
-      const proxyResult = await callCloudflareProxy(proxyEndpoint, { text, image, apiKey });
+      const proxyResult = await callCloudflareProxy(proxyEndpoint, { text, image, apiKey, langMode });
       if (proxyResult) return proxyResult;
     } catch (proxyErr) {
-      // If proxy fails with 404 (local static file) or no secret configured and user has API Key, fallback to direct
       if (apiKey) {
         console.warn("[Cloudflare Proxy] Fallback to direct Gemini API:", proxyErr.message);
       } else {
@@ -34,21 +32,29 @@ export async function analyzeChineseContent({ apiKey, customEndpoint, text, imag
 
   // 2. Direct Gemini 2.0 Flash API Call (BYOK mode)
   if (!apiKey) {
-    throw new Error("กรุณากรอก Gemini API Key ในเมนูตั้งค่า (⚙️) หรือตั้งค่า Secret `GEMINI_API_KEY` บน Cloudflare");
+    throw new Error("ไม่พบ API Key กรุณาตั้งค่า Secret `GEMINI_API_KEY` บน Cloudflare หรือกรอก API Key ในเมนูตั้งค่า (⚙️)");
   }
 
   const endpoint = `${CONFIG.GEMINI_ENDPOINT_BASE}${CONFIG.GEMINI_MODEL}:generateContent?key=${encodeURIComponent(apiKey)}`;
+  const isThaiInput = langMode === "th" || (langMode === "auto" && /[\u0e00-\u0e7f]/.test(text || ""));
 
-  const systemInstruction = `คุณคือผู้เชี่ยวชาญด้านภาษาศาสตร์ภาษาจีนและอาจารย์สอนไวยากรณ์จีนสำหรับผู้เรียนชาวไทย
+  const systemInstruction = `คุณคือผู้เชี่ยวชาญด้านภาษาศาสตร์ภาษาจีนและการแปลภาษาจีน-ไทยสำหรับผู้เรียนชาวไทย
 หน้าที่ของคุณคือ:
-1. หากผู้ใช้ส่งข้อความภาษาจีนมา ให้วิเคราะห์ประโยคนั้นอย่างละเอียดลึกซึ้ง
-2. หากผู้ใช้ส่งรูปภาพมา ให้สกัดข้อความภาษาจีนสำคัญในรูปภาพออกมาเป็น originalText แล้วทำการวิเคราะห์
-3. แปลภาษาไทย 2 ระดับ:
-   - naturalThaiTranslation: แปลบริบทภาษาไทยอย่างสละสลวย ถูกต้องตามอารมณ์และสำนวน
-   - literalThaiTranslation: แปลตรงตัวเรียงคำต่อคำ (Word-for-Word Gloss) เพื่อให้ผู้เรียนเข้าใจลำดับคำ
-4. ตัดคำ (Tokens) ในประโยคอย่างแม่นยำ พร้อมถอดพินอินและวรรณยุกต์แยกรายตัวอักษรจีนในฟิลด์ chars: [{char, pinyin}]
-5. กำหนดหน้าที่คำ (syntacticRole) ให้ตรงกับหนึ่งใน: ["subject", "predicate", "object", "attributive", "adverbial", "complement", "grammar_marker", "time_location"]
-6. สกัดโครงสร้างไวยากรณ์สำคัญใน grammarPoints (เช่น 把字句, 被字句, 是...的, 比较句, 结果补语, 趋向补语, 状态补语) พร้อมระบุ associatedTokenIds ที่เกี่ยวข้อง`;
+1. หากข้อความเป็น "ภาษาจีน" (หรือรูปภาพ):
+   - originalText: ข้อความภาษาจีน
+   - sourceLang: "zh"
+   - naturalThaiTranslation: แปลบริบทภาษาไทยอย่างสละสลวย
+   - literalThaiTranslation: แปลตรงตัวเรียงคำ (Word-for-Word Gloss)
+   - วิเคราะห์ตัดคำ (tokens) พร้อมถอดพินอินและวรรณยุกต์แยกรายตัวอักษรจีน (chars: [{char, pinyin}]) และหน้าที่คำ (syntacticRole)
+   - สกัดโครงสร้างไวยากรณ์สำคัญใน grammarPoints (เช่น 把字句, 被字句, 是...的, 比较句, 结果补语)
+
+2. หากข้อความเป็น "ภาษาไทย":
+   - sourceLang: "th"
+   - แปลประโยคภาษาไทยเป็น "ประโยคภาษาจีนที่ถูกต้อง เป็นธรรมชาติ และใช้โครงสร้างไวยากรณ์ที่เหมาะสมที่สุด" ใส่ใน originalText
+   - naturalThaiTranslation: ประโยคภาษาไทยต้นทาง
+   - literalThaiTranslation: แปลตรงตัวเรียงคำจากประโยคจีนที่แปลได้ เพื่อให้ผู้เรียนไทยเห็นลำดับคำในภาษาจีน
+   - grammarSummaryTh: อธิบายโครงสร้างและหลักการแปลงประโยคไทยเป็นจีน
+   - แจกแจงประโยคภาษาจีนที่สร้างขึ้นเป็น tokens (พร้อมพินอินรายตัวอักษร chars) และ grammarPoints อย่างละเอียด`;
 
   const contents = [];
   const parts = [];
@@ -66,9 +72,15 @@ export async function analyzeChineseContent({ apiKey, customEndpoint, text, imag
         : "จงอ่านและสกัดข้อความภาษาจีนทั้งหมดที่ปรากฏในรูปภาพนี้ แล้วทำการวิเคราะห์ไวยากรณ์เชิงลึกตาม Schema"
     });
   } else if (text) {
-    parts.push({
-      text: `จงวิเคราะห์ประโยคภาษาจีนนี้อย่างละเอียด: "${text}"`
-    });
+    if (isThaiInput) {
+      parts.push({
+        text: `จงแปลประโยคภาษาไทยนี้เป็นภาษาจีนที่สละสลวย พร้อมแจกแจงโครงสร้างไวยากรณ์จีนอย่างละเอียด: "${text}"`
+      });
+    } else {
+      parts.push({
+        text: `จงวิเคราะห์ประโยคภาษาจีนนี้อย่างละเอียด: "${text}"`
+      });
+    }
   } else {
     throw new Error("ไม่มีข้อความหรือรูปภาพสำหรับวิเคราะห์");
   }
@@ -93,14 +105,14 @@ export async function analyzeChineseContent({ apiKey, customEndpoint, text, imag
 /**
  * Call Cloudflare Pages / Worker Proxy (/api/analyze)
  */
-async function callCloudflareProxy(endpoint, { text, image, apiKey }) {
+async function callCloudflareProxy(endpoint, { text, image, apiKey, langMode }) {
   const response = await fetch(endpoint, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       ...(apiKey ? { "x-gemini-key": apiKey } : {})
     },
-    body: JSON.stringify({ text, image, apiKey })
+    body: JSON.stringify({ text, image, apiKey, langMode })
   });
 
   if (!response.ok) {
@@ -113,7 +125,7 @@ async function callCloudflareProxy(endpoint, { text, image, apiKey }) {
 }
 
 /**
- * Fetch with Exponential Backoff retry handler (Instantly throws non-retryable 400/401/403)
+ * Fetch with Exponential Backoff retry handler
  */
 async function fetchWithRetry(url, payload, maxRetries = 2) {
   let attempt = 0;
@@ -127,11 +139,10 @@ async function fetchWithRetry(url, payload, maxRetries = 2) {
         body: JSON.stringify(payload)
       });
 
-      // 1. Rate Limit (429) -> Retry with Backoff
       if (response.status === 429) {
         if (attempt < maxRetries) {
           attempt++;
-          console.warn(`[Gemini API] Rate limited (429). Retrying in ${delay}ms... (Attempt ${attempt}/${maxRetries})`);
+          console.warn(`[Gemini API] Rate limited (429). Retrying in ${delay}ms...`);
           await new Promise(resolve => setTimeout(resolve, delay));
           delay *= 2;
           continue;
@@ -140,14 +151,12 @@ async function fetchWithRetry(url, payload, maxRetries = 2) {
         }
       }
 
-      // 2. Non-retryable Bad Request / Auth errors (400, 401, 403) -> Fail fast
       if (response.status === 400 || response.status === 401 || response.status === 403) {
         const errorBody = await response.json().catch(() => ({}));
         const errorMessage = errorBody.error?.message || `API Key ไม่ถูกต้อง หรือรูปแบบคำสั่งไม่ถูกต้อง (Status ${response.status})`;
         throw new Error(errorMessage);
       }
 
-      // 3. Other Non-OK responses (e.g. 500, 503) -> Retry
       if (!response.ok) {
         if (attempt < maxRetries) {
           attempt++;
@@ -167,11 +176,9 @@ async function fetchWithRetry(url, payload, maxRetries = 2) {
         throw new Error("ไม่ได้รับข้อมูลการวิเคราะห์กลับมาจากโมเดล");
       }
 
-      const parsed = JSON.parse(rawText);
-      return parsed;
+      return JSON.parse(rawText);
 
     } catch (err) {
-      // Re-throw if non-retryable or max retries exceeded
       if (attempt >= maxRetries || err.message.includes("API Key") || err.message.includes("400") || err.message.includes("403")) {
         throw err;
       }

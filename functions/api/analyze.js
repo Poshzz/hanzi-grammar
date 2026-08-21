@@ -1,5 +1,5 @@
 // Cloudflare Pages Function: /api/analyze
-// Safely accesses GEMINI_API_KEY from Cloudflare Secrets / Environment Variables
+// Bidirectional Translation & Grammar Analysis (Chinese <-> Thai) using Gemini 2.0 Flash
 
 import { GEMINI_RESPONSE_SCHEMA } from "../../js/config.js";
 
@@ -9,7 +9,7 @@ const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models
 export async function onRequestPost(context) {
   const { request, env } = context;
 
-  // Handle CORS Preflight
+  // Standard CORS Headers
   const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
@@ -19,29 +19,38 @@ export async function onRequestPost(context) {
 
   try {
     const body = await request.json();
-    const { text, image, apiKey: clientApiKey } = body;
+    const { text, image, apiKey: clientApiKey, langMode = "auto" } = body;
 
-    // Prefer Cloudflare Secret GEMINI_API_KEY, fallback to client provided key
+    // Read API Key from Cloudflare Secrets, Header, or Client Payload
     const apiKey = env.GEMINI_API_KEY || clientApiKey || request.headers.get("x-gemini-key");
 
     if (!apiKey) {
       return new Response(JSON.stringify({
         error: {
-          message: "ไม่พบ Gemini API Key ใน Cloudflare Secrets (GEMINI_API_KEY) หรือจากผู้ใช้ กรุณาตั้งค่าใน Cloudflare Dashboard หรือเมนูตั้งค่าของเว็บ"
+          message: "ไม่พบ Gemini API Key ใน Cloudflare Secrets (GEMINI_API_KEY) หรือจากผู้ใช้ กรุณาตั้งค่า Secret บน Cloudflare Dashboard หรือกรอกในเมนูตั้งค่าของเว็บ"
         }
       }), { status: 400, headers: corsHeaders });
     }
 
-    const systemInstruction = `คุณคือผู้เชี่ยวชาญด้านภาษาศาสตร์ภาษาจีนและอาจารย์สอนไวยากรณ์จีนสำหรับผู้เรียนชาวไทย
+    const isThaiInput = langMode === "th" || (langMode === "auto" && /[\u0e00-\u0e7f]/.test(text || ""));
+
+    const systemInstruction = `คุณคือผู้เชี่ยวชาญด้านภาษาศาสตร์ภาษาจีนและการแปลภาษาจีน-ไทยสำหรับผู้เรียนชาวไทย
 หน้าที่ของคุณคือ:
-1. หากผู้ใช้ส่งข้อความภาษาจีนมา ให้วิเคราะห์ประโยคนั้นอย่างละเอียดลึกซึ้ง
-2. หากผู้ใช้ส่งรูปภาพมา ให้สกัดข้อความภาษาจีนสำคัญในรูปภาพออกมาเป็น originalText แล้วทำการวิเคราะห์
-3. แปลภาษาไทย 2 ระดับ:
+1. หากข้อความเป็น "ภาษาจีน" (หรือผู้ใช้อัปโหลดรูปภาพภาษาจีน):
+   - originalText: ข้อความภาษาจีน
+   - sourceLang: "zh"
    - naturalThaiTranslation: แปลบริบทภาษาไทยอย่างสละสลวย ถูกต้องตามอารมณ์และสำนวน
-   - literalThaiTranslation: แปลตรงตัวเรียงคำต่อคำ (Word-for-Word Gloss) เพื่อให้ผู้เรียนเข้าใจลำดับคำ
-4. ตัดคำ (Tokens) ในประโยคอย่างแม่นยำ พร้อมถอดพินอินและวรรณยุกต์แยกรายตัวอักษรจีนในฟิลด์ chars: [{char, pinyin}]
-5. กำหนดหน้าที่คำ (syntacticRole) ให้ตรงกับหนึ่งใน: ["subject", "predicate", "object", "attributive", "adverbial", "complement", "grammar_marker", "time_location"]
-6. สกัดโครงสร้างไวยากรณ์สำคัญใน grammarPoints (เช่น 把字句, 被字句, 是...的, 比较句, 结果补语, 趋向补语, 状态补语) พร้อมระบุ associatedTokenIds ที่เกี่ยวข้อง`;
+   - literalThaiTranslation: แปลตรงตัวเรียงคำต่อคำ (Word-for-Word Gloss)
+   - วิเคราะห์ตัดคำ (tokens) พร้อมถอดพินอินและวรรณยุกต์แยกรายตัวอักษรจีน (chars: [{char, pinyin}]) และหน้าที่คำ (syntacticRole)
+   - สกัดโครงสร้างไวยากรณ์สำคัญใน grammarPoints (เช่น 把字句, 被字句, 是...的, 比较句, 结果补语)
+
+2. หากข้อความเป็น "ภาษาไทย" (เช่น "เมื่อวานฉันอ่านหนังสือเล่มนั้นจบแล้ว"):
+   - sourceLang: "th"
+   - แปลประโยคภาษาไทยนั้นเป็น "ประโยคภาษาจีนที่ถูกต้อง เป็นธรรมชาติ และใช้โครงสร้างไวยากรณ์ที่เหมาะสมที่สุด" ใส่ลงใน originalText (เช่น "我昨天把那本书看完了。")
+   - naturalThaiTranslation: ประโยคภาษาไทยต้นทาง
+   - literalThaiTranslation: แปลตรงตัวเรียงคำจากประโยคจีนที่สร้างขึ้น เพื่อให้ผู้เรียนไทยเห็นว่าคนจีนเรียงคำอย่างไร
+   - grammarSummaryTh: อธิบายว่าทำไมภาษาจีนถึงใช้โครงสร้างนี้ในการแปลประโยคภาษาไทยดังกล่าว
+   - วิเคราะห์แจกแจงประโยคภาษาจีนที่แปลได้ออกมาเป็น tokens (พร้อมพินอินรายตัวอักษร chars) และ grammarPoints เพื่อให้ผู้เรียนเข้าใจวิธีสร้างประโยคนี้ในภาษาจีนอย่างลึกซึ้ง`;
 
     const parts = [];
 
@@ -58,9 +67,15 @@ export async function onRequestPost(context) {
           : "จงอ่านและสกัดข้อความภาษาจีนทั้งหมดที่ปรากฏในรูปภาพนี้ แล้วทำการวิเคราะห์ไวยากรณ์เชิงลึกตาม Schema"
       });
     } else if (text) {
-      parts.push({
-        text: `จงวิเคราะห์ประโยคภาษาจีนนี้อย่างละเอียด: "${text}"`
-      });
+      if (isThaiInput) {
+        parts.push({
+          text: `จงแปลประโยคภาษาไทยนี้เป็นภาษาจีนที่สละสลวย พร้อมแจกแจงโครงสร้างไวยากรณ์จีนอย่างละเอียด: "${text}"`
+        });
+      } else {
+        parts.push({
+          text: `จงวิเคราะห์ประโยคภาษาจีนนี้อย่างละเอียด: "${text}"`
+        });
+      }
     } else {
       return new Response(JSON.stringify({
         error: { message: "ไม่มีข้อความหรือรูปภาพสำหรับวิเคราะห์" }

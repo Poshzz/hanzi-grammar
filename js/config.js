@@ -1,4 +1,4 @@
-// HanziGrammar - Global Configuration & Constants
+// HanziGrammar - Global Configuration & Constants (Bidirectional Chinese <-> Thai)
 
 export const CONFIG = {
   GEMINI_MODEL: "gemini-2.0-flash",
@@ -99,41 +99,44 @@ export const ROLE_DEFINITIONS = {
 };
 
 export const DEMO_PRESETS = [
+  // Chinese -> Thai Presets
   {
-    title: "โครงสร้าง 把 (把字句)",
+    title: "🇨🇳 โครงสร้าง 把",
     text: "我昨天把那本书看完了。",
-    badge: "HSK 3"
+    lang: "zh"
   },
   {
-    title: "ประโยคกรรม ถูกกระทำ (被字句)",
+    title: "🇨🇳 ประโยคกรรม ถูกกระทำ (被)",
     text: "桌子上的苹果被弟弟吃掉了。",
-    badge: "HSK 3"
+    lang: "zh"
   },
   {
-    title: "โครงสร้างเน้นย้ำ (是...的)",
+    title: "🇨🇳 เน้นย้ำ (是...的)",
     text: "他是去年坐飞机去北京学习汉语的。",
-    badge: "HSK 3"
+    lang: "zh"
+  },
+  // Thai -> Chinese Presets
+  {
+    title: "🇹🇭 ฉันอ่านหนังสือจบแล้วเมื่อวานนี้",
+    text: "เมื่อวานนี้ฉันอ่านหนังสือเล่มนั้นจบแล้ว",
+    lang: "th"
   },
   {
-    title: "โครงสร้างเปรียบเทียบ (比)",
-    text: "今天北京的天气比昨天冷得多。",
-    badge: "HSK 2"
+    title: "🇹🇭 แอปเปิ้ลถูกน้องกินไปแล้ว",
+    text: "แอปเปิ้ลบนโต๊ะถูกน้องชายกินหมดแล้ว",
+    lang: "th"
   },
   {
-    title: "ส่วนเติมเต็มบอกผลลัพธ์ (结果补语)",
-    text: "老师说的话你听懂了没有？",
-    badge: "HSK 2"
-  },
-  {
-    title: "ประโยคบอกทิศทาง (趋向补语)",
-    text: "他从书包里拿出来一本新书。",
-    badge: "HSK 3"
+    title: "🇹🇭 อากาศวันนี้หนาวกว่าเมื่อวานมาก",
+    text: "สภาพอากาศของปักกิ่งวันนี้หนาวกว่าเมื่อวานมาก",
+    lang: "th"
   }
 ];
 
 export const GEMINI_RESPONSE_SCHEMA = {
   type: "OBJECT",
   properties: {
+    sourceLang: { type: "STRING", enum: ["zh", "th"] },
     originalText: { type: "STRING" },
     sentenceType: { type: "STRING" },
     naturalThaiTranslation: { type: "STRING" },
@@ -198,6 +201,7 @@ export const GEMINI_RESPONSE_SCHEMA = {
     }
   },
   required: [
+    "sourceLang",
     "originalText",
     "sentenceType",
     "naturalThaiTranslation",

@@ -70,9 +70,22 @@
           <span class="text-xs text-slate-400 hidden sm:inline">โควตาฟรี 1,500 ครั้ง/วัน</span>
         </div>
 
+        <!-- Language Mode Selector -->
+        <div class="flex items-center gap-1.5 p-1 bg-slate-100/80 rounded-xl w-fit text-xs">
+          <button id="langAutoBtn" class="lang-btn px-3 py-1 rounded-lg font-bold bg-white text-blue-700 shadow-2xs transition">
+            🌐 ตรวจจับอัตโนมัติ (Auto)
+          </button>
+          <button id="langZhThBtn" class="lang-btn px-3 py-1 rounded-lg font-medium text-slate-600 hover:text-slate-900 transition">
+            🇨🇳 ➔ 🇹🇭 จีน เป็น ไทย
+          </button>
+          <button id="langThZhBtn" class="lang-btn px-3 py-1 rounded-lg font-medium text-slate-600 hover:text-slate-900 transition">
+            🇹🇭 ➔ 🇨🇳 ไทย เป็น จีน
+          </button>
+        </div>
+
         <!-- Text Input View -->
         <div id="textInputSection" class="space-y-3">
-          <textarea id="inputText" class="w-full p-4 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none text-lg sm:text-xl font-medium text-slate-900 placeholder:text-slate-400 resize-none transition bg-slate-50/50" rows="3" placeholder="พิมพ์หรือวางประโยคภาษาจีน เช่น 我昨天把那本书看完了。"></textarea>
+          <textarea id="inputText" class="w-full p-4 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none text-lg sm:text-xl font-medium text-slate-900 placeholder:text-slate-400 resize-none transition bg-slate-50/50" rows="3" placeholder="พิมพ์หรือวางข้อความภาษาจีน หรือ ภาษาไทย เช่น '我昨天把那本书看完了。' หรือ 'เมื่อวานนี้ฉันอ่านหนังสือจบแล้ว'"></textarea>
 
           <!-- Preset Sentences -->
           <div class="flex flex-wrap items-center gap-1.5 text-xs">

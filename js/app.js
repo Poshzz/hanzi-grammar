@@ -1,4 +1,4 @@
-// HanziGrammar - Main Application Orchestrator
+// HanziGrammar - Main Application Orchestrator (Bidirectional Chinese <-> Thai)
 
 import { CONFIG, DEMO_PRESETS } from "./config.js";
 import { analyzeChineseContent } from "./services/gemini.js";
@@ -16,6 +16,7 @@ import { exportToAnkiTSV, copyMarkdownToClipboard } from "./utils/exporters.js";
 const state = {
   apiKey: storageService.getApiKey(),
   customEndpoint: localStorage.getItem(CONFIG.STORAGE_KEYS.CUSTOM_ENDPOINT) || "",
+  langMode: "auto", // "auto" | "zh" | "th"
   showPinyin: true,
   currentResult: null,
   activeTokenId: null,
@@ -54,15 +55,10 @@ function initUI() {
     inputEl: document.getElementById("imageFileInput"),
     previewContainerEl: document.getElementById("imagePreviewContainer"),
     previewImageEl: document.getElementById("imagePreview"),
-    onImageSelected: () => {
-      // Image selected
-    },
-    onImageCleared: () => {
-      // Cleared
-    }
+    onImageSelected: () => {},
+    onImageCleared: () => {}
   });
 
-  // Clear button for image
   document.getElementById("btnClearImage")?.addEventListener("click", () => {
     imageUploaderInstance.clear();
   });
@@ -79,7 +75,7 @@ function updateApiKeyBadge() {
     badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> เชื่อมต่อ API Key แล้ว`;
   } else if (isCloudflare) {
     badge.className = "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200 shadow-2xs";
-    badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span> โหมด Cloudflare Secret Proxy`;
+    badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span> Cloudflare Secret Proxy`;
   } else {
     badge.className = "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-300 shadow-2xs";
     badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-500"></span> ยังไม่ใส่ API Key (ใส่ฟรี 1,500/วัน)`;
@@ -87,7 +83,7 @@ function updateApiKeyBadge() {
 }
 
 function setupEventListeners() {
-  // Navigation & Settings Modal
+  // Settings Modal
   const settingsModal = document.getElementById("settingsModal");
   const apiKeyInput = document.getElementById("apiKeyInput");
   const customEndpointInput = document.getElementById("customEndpointInput");
@@ -117,7 +113,35 @@ function setupEventListeners() {
     closeSettings();
   });
 
-  // Mode Tabs (Text vs Image OCR)
+  // Language Mode Tabs (Auto / ZH->TH / TH->ZH)
+  const langAutoBtn = document.getElementById("langAutoBtn");
+  const langZhThBtn = document.getElementById("langZhThBtn");
+  const langThZhBtn = document.getElementById("langThZhBtn");
+
+  const setLangMode = (mode) => {
+    state.langMode = mode;
+    [langAutoBtn, langZhThBtn, langThZhBtn].forEach(btn => {
+      btn?.classList.remove("bg-white", "text-blue-700", "font-bold", "shadow-2xs");
+      btn?.classList.add("font-medium", "text-slate-600");
+    });
+
+    if (mode === "auto" && langAutoBtn) {
+      langAutoBtn.classList.add("bg-white", "text-blue-700", "font-bold", "shadow-2xs");
+      langAutoBtn.classList.remove("font-medium", "text-slate-600");
+    } else if (mode === "zh" && langZhThBtn) {
+      langZhThBtn.classList.add("bg-white", "text-blue-700", "font-bold", "shadow-2xs");
+      langZhThBtn.classList.remove("font-medium", "text-slate-600");
+    } else if (mode === "th" && langThZhBtn) {
+      langThZhBtn.classList.add("bg-white", "text-blue-700", "font-bold", "shadow-2xs");
+      langThZhBtn.classList.remove("font-medium", "text-slate-600");
+    }
+  };
+
+  langAutoBtn?.addEventListener("click", () => setLangMode("auto"));
+  langZhThBtn?.addEventListener("click", () => setLangMode("zh"));
+  langThZhBtn?.addEventListener("click", () => setLangMode("th"));
+
+  // Input Mode Tabs (Text vs Image OCR)
   const tabText = document.getElementById("tabTextMode");
   const tabImage = document.getElementById("tabImageMode");
   const textSection = document.getElementById("textInputSection");
@@ -139,7 +163,7 @@ function setupEventListeners() {
     textSection?.classList.add("hidden");
   });
 
-  // Pinyin Visibility Toggle
+  // Pinyin Toggle
   const btnTogglePinyin = document.getElementById("btnTogglePinyin");
   btnTogglePinyin?.addEventListener("click", () => {
     state.showPinyin = !state.showPinyin;
@@ -151,17 +175,17 @@ function setupEventListeners() {
     });
   });
 
-  // Main Analyze Button
+  // Analyze Button
   document.getElementById("btnAnalyze")?.addEventListener("click", handleAnalyze);
 
-  // Play Full Sentence Audio
+  // Play Audio
   document.getElementById("btnPlaySentenceAudio")?.addEventListener("click", () => {
     if (state.currentResult?.originalText) {
       speechService.speak(state.currentResult.originalText);
     }
   });
 
-  // Toggle Bookmark
+  // Bookmark Toggle
   document.getElementById("btnToggleBookmark")?.addEventListener("click", async () => {
     if (!state.currentResult) return;
     const isNowBookmarked = await storageService.toggleBookmark(state.currentResult);
@@ -178,14 +202,14 @@ function setupEventListeners() {
     if (state.currentResult) copyMarkdownToClipboard(state.currentResult);
   });
 
-  // Stroke Order Modal Controls
+  // Stroke Order Modal
   document.getElementById("btnCloseStrokeModal")?.addEventListener("click", () => {
     document.getElementById("strokeModal")?.classList.add("hidden");
   });
   document.getElementById("btnAnimateStroke")?.addEventListener("click", animateCurrentCharacter);
   document.getElementById("btnQuizStroke")?.addEventListener("click", startQuizMode);
 
-  // History / Bookmarks Drawer Tabs
+  // History & Bookmarks Drawer
   const tabHistory = document.getElementById("tabHistory");
   const tabBookmarks = document.getElementById("tabBookmarks");
   const historyContainer = document.getElementById("historyListContainer");
@@ -239,7 +263,7 @@ async function handleAnalyze() {
   const image = imageUploaderInstance?.getImageData();
 
   if (state.activeTab === "text" && !text) {
-    alert("กรุณากรอกประโยคภาษาจีนที่ต้องการวิเคราะห์");
+    alert("กรุณากรอกข้อความภาษาจีน หรือ ภาษาไทยที่ต้องการวิเคราะห์");
     return;
   }
 
@@ -253,15 +277,15 @@ async function handleAnalyze() {
   try {
     let result = null;
 
-    // 1. If text mode: Check IndexedDB Cache first (0 API)
-    if (state.activeTab === "text" && !image) {
+    // 1. If single Chinese word: Check Local HSK Dictionary first (0 API)
+    if (state.activeTab === "text" && !image && localDict.isSingleWord(text)) {
+      result = localDict.buildLocalAnalysis(text);
+    }
+    // 2. Check IndexedDB Cache (0 API)
+    else if (state.activeTab === "text" && !image) {
       const cached = await storageService.getCachedAnalysis(text);
       if (cached) {
         result = cached;
-      }
-      // 2. Check if single word in Local HSK Dictionary (0 API)
-      else if (localDict.isSingleWord(text)) {
-        result = localDict.buildLocalAnalysis(text);
       }
     }
 
@@ -270,7 +294,8 @@ async function handleAnalyze() {
       result = await analyzeChineseContent({
         apiKey: state.apiKey,
         customEndpoint: state.customEndpoint,
-        text: text || "", // Pass text in both modes so user can provide OCR hints
+        langMode: state.langMode,
+        text: text || "",
         image: state.activeTab === "image" ? image : null
       });
 
@@ -297,7 +322,6 @@ function renderResults(result) {
   const resultsContainer = document.getElementById("resultsContainer");
   resultsContainer?.classList.remove("hidden");
 
-  // 1. Dual Translations
   const naturalEl = document.getElementById("naturalTranslation");
   const literalEl = document.getElementById("literalTranslation");
   const typeBadgeEl = document.getElementById("sentenceTypeBadge");
@@ -306,14 +330,16 @@ function renderResults(result) {
 
   if (naturalEl) naturalEl.textContent = result.naturalThaiTranslation;
   if (literalEl) literalEl.textContent = result.literalThaiTranslation;
-  if (typeBadgeEl) typeBadgeEl.textContent = result.sentenceType || "ประโยคภาษาจีน";
+  if (typeBadgeEl) {
+    const directionBadge = result.sourceLang === "th" ? "🇹🇭➔🇨🇳 แปลเป็นจีน" : "🇨🇳➔🇹🇭 แปลเป็นไทย";
+    typeBadgeEl.textContent = `${directionBadge} | ${result.sentenceType || "ประโยคภาษาจีน"}`;
+  }
   if (summaryEl) summaryEl.textContent = result.grammarSummaryTh || "";
 
   if (localBadgeEl) {
     localBadgeEl.classList.toggle("hidden", !result.isLocal);
   }
 
-  // Update Bookmark Star Status
   updateBookmarkButton(storageService.isBookmarked(result.originalText));
 
   // 2. Render Ruby Sentence Tokens
@@ -347,7 +373,6 @@ function renderResults(result) {
     onCharClick: (char) => openStrokeModal(char)
   });
 
-  // Smooth scroll
   resultsContainer?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
@@ -385,7 +410,6 @@ function toggleGrammarFocus(grammarId, tokenIds) {
 function updateVisualLinks() {
   if (!state.currentResult) return;
 
-  // Update Tokens
   const tokensContainer = document.getElementById("sentenceTokensContainer");
   if (tokensContainer) {
     renderRubyTokens(tokensContainer, state.currentResult.tokens, {
@@ -399,7 +423,6 @@ function updateVisualLinks() {
     });
   }
 
-  // Update Grammar Cards
   const grammarContainer = document.getElementById("grammarCardsContainer");
   if (grammarContainer) {
     renderGrammarCards(grammarContainer, state.currentResult.grammarPoints, {
@@ -410,7 +433,6 @@ function updateVisualLinks() {
     });
   }
 
-  // Update Table Rows
   const tableBody = document.getElementById("lexicalTableBody");
   if (tableBody) {
     renderLexicalTable(tableBody, state.currentResult.tokens, {
