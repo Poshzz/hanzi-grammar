@@ -3,7 +3,7 @@
 
 import { GEMINI_RESPONSE_SCHEMA } from "../../js/config.js";
 
-const GEMINI_MODEL = "gemini-2.5-flash";
+const GEMINI_MODEL = "gemini-1.5-flash";
 const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 
 export async function onRequestPost(context) {
