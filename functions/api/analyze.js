@@ -1,9 +1,9 @@
 // Cloudflare Pages Function: /api/analyze
-// Bidirectional Translation & Grammar Analysis (Chinese <-> Thai) using Gemini 2.0 Flash
+// Bidirectional Translation & Grammar Analysis (Chinese <-> Thai) using Gemini 2.5 Flash
 
 import { GEMINI_RESPONSE_SCHEMA } from "../../js/config.js";
 
-const GEMINI_MODEL = "gemini-1.5-flash";
+const GEMINI_MODEL = "gemini-2.5-flash";
 const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 
 export async function onRequestPost(context) {
@@ -36,7 +36,7 @@ export async function onRequestPost(context) {
 
     const systemInstruction = `คุณคือผู้เชี่ยวชาญด้านภาษาศาสตร์ภาษาจีนและการแปลภาษาจีน-ไทยสำหรับผู้เรียนชาวไทย
 หน้าที่ของคุณคือ:
-1. หากข้อความเป็น "ภาษาจีน" (หรือผู้ใช้อัปโหลดรูปภาพภาษาจีน):
+1. หากข้อความเป็น "ภาษาจีน" (หรือรูปภาพ):
    - originalText: ข้อความภาษาจีน
    - sourceLang: "zh"
    - naturalThaiTranslation: แปลบริบทภาษาไทยอย่างสละสลวย ถูกต้องตามอารมณ์และสำนวน
@@ -46,7 +46,7 @@ export async function onRequestPost(context) {
 
 2. หากข้อความเป็น "ภาษาไทย" (เช่น "เมื่อวานฉันอ่านหนังสือเล่มนั้นจบแล้ว"):
    - sourceLang: "th"
-   - แปลประโยคภาษาไทยนั้นเป็น "ประโยคภาษาจีนที่ถูกต้อง เป็นธรรมชาติ และใช้โครงสร้างไวยากรณ์ที่เหมาะสมที่สุด" ใส่ลงใน originalText (เช่น "我昨天把那本书看完了。")
+   - แปลประโยคภาษาไทยเป็น "ประโยคภาษาจีนที่ถูกต้อง เป็นธรรมชาติ และใช้โครงสร้างไวยากรณ์ที่เหมาะสมที่สุด" ใส่ใน originalText (เช่น "我昨天把那本书看完了。")
    - naturalThaiTranslation: ประโยคภาษาไทยต้นทาง
    - literalThaiTranslation: แปลตรงตัวเรียงคำจากประโยคจีนที่สร้างขึ้น เพื่อให้ผู้เรียนไทยเห็นว่าคนจีนเรียงคำอย่างไร
    - grammarSummaryTh: อธิบายว่าทำไมภาษาจีนถึงใช้โครงสร้างนี้ในการแปลประโยคภาษาไทยดังกล่าว
