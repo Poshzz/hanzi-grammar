@@ -410,39 +410,46 @@ function toggleGrammarFocus(grammarId, tokenIds) {
 function updateVisualLinks() {
   if (!state.currentResult) return;
 
-  const tokensContainer = document.getElementById("sentenceTokensContainer");
-  if (tokensContainer) {
-    renderRubyTokens(tokensContainer, state.currentResult.tokens, {
-      showPinyin: state.showPinyin,
-      activeTokenId: state.activeTokenId,
-      highlightedTokenIds: state.highlightedTokenIds,
-      onTokenHover: (tokenId) => setHoverState(tokenId, null),
-      onTokenLeave: () => clearHoverState(),
-      onTokenClick: (tokenId) => toggleTapFocus(tokenId),
-      onCharClick: (char) => openStrokeModal(char)
-    });
-  }
+  // 1. Update Token Cards in-place (No DOM destruction)
+  document.querySelectorAll(".token-card").forEach(el => {
+    const id = el.getAttribute("data-token-id");
+    const isActive = id === state.activeTokenId;
+    const isHighlighted = state.highlightedTokenIds && state.highlightedTokenIds.includes(id);
 
-  const grammarContainer = document.getElementById("grammarCardsContainer");
-  if (grammarContainer) {
-    renderGrammarCards(grammarContainer, state.currentResult.grammarPoints, {
-      activeGrammarId: state.activeGrammarId,
-      onGrammarHover: (grammarId, tokenIds) => setHoverState(null, grammarId, tokenIds),
-      onGrammarLeave: () => clearHoverState(),
-      onGrammarClick: (grammarId, tokenIds) => toggleGrammarFocus(grammarId, tokenIds)
-    });
-  }
+    el.classList.toggle("ring-3", isActive);
+    el.classList.toggle("ring-offset-2", isActive);
+    el.classList.toggle("ring-blue-600", isActive);
+    el.classList.toggle("scale-105", isActive);
+    el.classList.toggle("shadow-xl", isActive);
+    el.classList.toggle("z-30", isActive || isHighlighted);
 
-  const tableBody = document.getElementById("lexicalTableBody");
-  if (tableBody) {
-    renderLexicalTable(tableBody, state.currentResult.tokens, {
-      activeTokenId: state.activeTokenId,
-      onRowHover: (tokenId) => setHoverState(tokenId, null),
-      onRowLeave: () => clearHoverState(),
-      onRowClick: (tokenId) => toggleTapFocus(tokenId),
-      onCharClick: (char) => openStrokeModal(char)
-    });
-  }
+    el.classList.toggle("ring-2", isHighlighted && !isActive);
+    el.classList.toggle("ring-purple-500", isHighlighted && !isActive);
+    el.classList.toggle("scale-102", isHighlighted && !isActive);
+  });
+
+  // 2. Update Grammar Cards in-place (No DOM destruction)
+  document.querySelectorAll(".grammar-card").forEach(el => {
+    const id = el.getAttribute("data-grammar-id");
+    const isActive = id === state.activeGrammarId;
+
+    el.classList.toggle("ring-2", isActive);
+    el.classList.toggle("ring-purple-600", isActive);
+    el.classList.toggle("bg-purple-100/95", isActive);
+    el.classList.toggle("shadow-xl", isActive);
+    el.classList.toggle("scale-[1.02]", isActive);
+  });
+
+  // 3. Update Lexical Table Rows in-place (No DOM destruction)
+  document.querySelectorAll("#lexicalTableBody tr").forEach(el => {
+    const id = el.getAttribute("data-token-id");
+    const isActive = id === state.activeTokenId;
+    const isHighlighted = state.highlightedTokenIds && state.highlightedTokenIds.includes(id);
+
+    el.classList.toggle("bg-blue-100/80", isActive);
+    el.classList.toggle("bg-purple-50/80", isHighlighted && !isActive);
+    el.classList.toggle("font-bold", isActive || isHighlighted);
+  });
 }
 
 function updateBookmarkButton(isBookmarked) {
