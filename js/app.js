@@ -15,6 +15,7 @@ import { exportToAnkiTSV, copyMarkdownToClipboard } from "./utils/exporters.js";
 // Global Application State
 const state = {
   apiKey: storageService.getApiKey(),
+  customEndpoint: localStorage.getItem(CONFIG.STORAGE_KEYS.CUSTOM_ENDPOINT) || "",
   showPinyin: true,
   currentResult: null,
   activeTokenId: null,
@@ -54,7 +55,7 @@ function initUI() {
     previewContainerEl: document.getElementById("imagePreviewContainer"),
     previewImageEl: document.getElementById("imagePreview"),
     onImageSelected: () => {
-      // Auto switch or ready
+      // Image selected
     },
     onImageCleared: () => {
       // Cleared
@@ -71,9 +72,14 @@ function updateApiKeyBadge() {
   const badge = document.getElementById("apiKeyStatusBadge");
   if (!badge) return;
 
+  const isCloudflare = window.location.protocol.startsWith("http");
+
   if (state.apiKey) {
     badge.className = "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs";
     badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> เชื่อมต่อ API Key แล้ว`;
+  } else if (isCloudflare) {
+    badge.className = "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200 shadow-2xs";
+    badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span> โหมด Cloudflare Secret Proxy`;
   } else {
     badge.className = "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-300 shadow-2xs";
     badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-500"></span> ยังไม่ใส่ API Key (ใส่ฟรี 1,500/วัน)`;
@@ -84,9 +90,11 @@ function setupEventListeners() {
   // Navigation & Settings Modal
   const settingsModal = document.getElementById("settingsModal");
   const apiKeyInput = document.getElementById("apiKeyInput");
+  const customEndpointInput = document.getElementById("customEndpointInput");
 
   const openSettings = () => {
     if (apiKeyInput) apiKeyInput.value = state.apiKey;
+    if (customEndpointInput) customEndpointInput.value = state.customEndpoint;
     settingsModal?.classList.remove("hidden");
   };
 
@@ -100,8 +108,11 @@ function setupEventListeners() {
 
   document.getElementById("btnSaveSettings")?.addEventListener("click", () => {
     const key = (apiKeyInput?.value || "").trim();
+    const endpoint = (customEndpointInput?.value || "").trim();
     state.apiKey = key;
+    state.customEndpoint = endpoint;
     storageService.setApiKey(key);
+    localStorage.setItem(CONFIG.STORAGE_KEYS.CUSTOM_ENDPOINT, endpoint);
     updateApiKeyBadge();
     closeSettings();
   });
@@ -204,7 +215,7 @@ function renderPresets() {
   if (!container) return;
 
   container.innerHTML = "";
-  DEMO_PRESETS.forEach((preset, idx) => {
+  DEMO_PRESETS.forEach((preset) => {
     const btn = document.createElement("button");
     btn.className = "btn-preset px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-blue-50 hover:text-blue-700 text-slate-700 transition text-xs font-medium flex items-center gap-1 cursor-pointer";
     btn.innerHTML = `<span>${preset.title}</span>`;
@@ -254,11 +265,12 @@ async function handleAnalyze() {
       }
     }
 
-    // 3. Call Gemini 2.0 Flash (1 Request)
+    // 3. Call Cloudflare Proxy / Gemini 2.0 Flash (1 Request)
     if (!result) {
       result = await analyzeChineseContent({
         apiKey: state.apiKey,
-        text: state.activeTab === "text" ? text : "",
+        customEndpoint: state.customEndpoint,
+        text: text || "", // Pass text in both modes so user can provide OCR hints
         image: state.activeTab === "image" ? image : null
       });
 
@@ -274,7 +286,7 @@ async function handleAnalyze() {
 
   } catch (err) {
     console.error("Analysis Error:", err);
-    alert(err.message || "เกิดข้อผิดพลาดในการวิเคราะห์ กรุณาตรวจสอบ API Key");
+    alert(err.message || "เกิดข้อผิดพลาดในการวิเคราะห์ กรุณาตรวจสอบ API Key หรือ Cloudflare Proxy");
   } finally {
     setLoading(false);
   }

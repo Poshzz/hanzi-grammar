@@ -38,7 +38,11 @@ export async function openStrokeModal(char) {
         strokeColor: "#2563eb", // Blue-600
         outlineColor: "#cbd5e1", // Slate-300
         drawingColor: "#059669", // Emerald-600
-        radicalColor: "#d97706"  // Amber-600
+        radicalColor: "#d97706", // Amber-600
+        onLoadCharDataError: (err) => {
+          console.warn(`[HanziWriter] Char data error for '${targetChar}':`, err);
+          charContainer.innerHTML = `<div class="p-6 text-center text-slate-400 text-xs">ไม่พบข้อมูลลำดับขีดของตัวอักษร '${targetChar}' ในฐานข้อมูลมาตรฐาน</div>`;
+        }
       });
 
       writerInstance.animateCharacter();

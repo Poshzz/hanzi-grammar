@@ -1,18 +1,40 @@
-// Gemini 2.0 Flash Client Service with Strict JSON Schema & Multimodal OCR
+// Gemini 2.0 Flash Client Service (Supports Cloudflare Secret Proxy & Direct BYOK)
 
 import { CONFIG, GEMINI_RESPONSE_SCHEMA } from "../config.js";
 
 /**
  * Analyze Chinese text or image with Gemini 2.0 Flash
+ * Automatically routes through Cloudflare Secret Proxy (/api/analyze) or direct Google Gemini API
  * @param {Object} params
- * @param {string} params.apiKey
+ * @param {string} [params.apiKey]
+ * @param {string} [params.customEndpoint]
  * @param {string} [params.text]
  * @param {Object} [params.image] { mimeType: string, base64Data: string }
  * @returns {Promise<Object>}
  */
-export async function analyzeChineseContent({ apiKey, text, image }) {
+export async function analyzeChineseContent({ apiKey, customEndpoint, text, image }) {
+  // Determine if we should use Cloudflare Proxy endpoint
+  const isHostedOnWeb = window.location.protocol.startsWith("http");
+  const proxyEndpoint = customEndpoint || (isHostedOnWeb ? CONFIG.CLOUDFLARE_PROXY_ENDPOINT : null);
+
+  // 1. Try Cloudflare Worker / Pages Proxy First if available
+  if (proxyEndpoint) {
+    try {
+      const proxyResult = await callCloudflareProxy(proxyEndpoint, { text, image, apiKey });
+      if (proxyResult) return proxyResult;
+    } catch (proxyErr) {
+      // If proxy fails with 404 (local static file) or no secret configured and user has API Key, fallback to direct
+      if (apiKey) {
+        console.warn("[Cloudflare Proxy] Fallback to direct Gemini API:", proxyErr.message);
+      } else {
+        throw proxyErr;
+      }
+    }
+  }
+
+  // 2. Direct Gemini 2.0 Flash API Call (BYOK mode)
   if (!apiKey) {
-    throw new Error("กรุณากรอก Gemini API Key ในเมนูตั้งค่า (⚙️) ก่อนใช้งาน");
+    throw new Error("กรุณากรอก Gemini API Key ในเมนูตั้งค่า (⚙️) หรือตั้งค่า Secret `GEMINI_API_KEY` บน Cloudflare");
   }
 
   const endpoint = `${CONFIG.GEMINI_ENDPOINT_BASE}${CONFIG.GEMINI_MODEL}:generateContent?key=${encodeURIComponent(apiKey)}`;
@@ -69,7 +91,29 @@ export async function analyzeChineseContent({ apiKey, text, image }) {
 }
 
 /**
- * Fetch with Exponential Backoff retry handler
+ * Call Cloudflare Pages / Worker Proxy (/api/analyze)
+ */
+async function callCloudflareProxy(endpoint, { text, image, apiKey }) {
+  const response = await fetch(endpoint, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(apiKey ? { "x-gemini-key": apiKey } : {})
+    },
+    body: JSON.stringify({ text, image, apiKey })
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.json().catch(() => ({}));
+    const msg = errorBody.error?.message || `Proxy Error (Status ${response.status})`;
+    throw new Error(msg);
+  }
+
+  return await response.json();
+}
+
+/**
+ * Fetch with Exponential Backoff retry handler (Instantly throws non-retryable 400/401/403)
  */
 async function fetchWithRetry(url, payload, maxRetries = 2) {
   let attempt = 0;
@@ -83,8 +127,8 @@ async function fetchWithRetry(url, payload, maxRetries = 2) {
         body: JSON.stringify(payload)
       });
 
+      // 1. Rate Limit (429) -> Retry with Backoff
       if (response.status === 429) {
-        // Rate limit exceeded
         if (attempt < maxRetries) {
           attempt++;
           console.warn(`[Gemini API] Rate limited (429). Retrying in ${delay}ms... (Attempt ${attempt}/${maxRetries})`);
@@ -96,7 +140,21 @@ async function fetchWithRetry(url, payload, maxRetries = 2) {
         }
       }
 
+      // 2. Non-retryable Bad Request / Auth errors (400, 401, 403) -> Fail fast
+      if (response.status === 400 || response.status === 401 || response.status === 403) {
+        const errorBody = await response.json().catch(() => ({}));
+        const errorMessage = errorBody.error?.message || `API Key ไม่ถูกต้อง หรือรูปแบบคำสั่งไม่ถูกต้อง (Status ${response.status})`;
+        throw new Error(errorMessage);
+      }
+
+      // 3. Other Non-OK responses (e.g. 500, 503) -> Retry
       if (!response.ok) {
+        if (attempt < maxRetries) {
+          attempt++;
+          await new Promise(resolve => setTimeout(resolve, delay));
+          delay *= 2;
+          continue;
+        }
         const errorBody = await response.json().catch(() => ({}));
         const errorMessage = errorBody.error?.message || `เกิดข้อผิดพลาดจาก Gemini API (Status ${response.status})`;
         throw new Error(errorMessage);
@@ -113,7 +171,8 @@ async function fetchWithRetry(url, payload, maxRetries = 2) {
       return parsed;
 
     } catch (err) {
-      if (attempt >= maxRetries) {
+      // Re-throw if non-retryable or max retries exceeded
+      if (attempt >= maxRetries || err.message.includes("API Key") || err.message.includes("400") || err.message.includes("403")) {
         throw err;
       }
       attempt++;

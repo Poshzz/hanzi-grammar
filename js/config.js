@@ -3,10 +3,12 @@
 export const CONFIG = {
   GEMINI_MODEL: "gemini-2.0-flash",
   GEMINI_ENDPOINT_BASE: "https://generativelanguage.googleapis.com/v1beta/models/",
+  CLOUDFLARE_PROXY_ENDPOINT: "/api/analyze",
   DEFAULT_SPEECH_RATE: 0.85,
   MAX_RPM: 15,
   STORAGE_KEYS: {
     API_KEY: "hanzi_gemini_api_key",
+    CUSTOM_ENDPOINT: "hanzi_custom_endpoint",
     SETTINGS: "hanzi_settings",
     HISTORY: "hanzi_history_v2",
     BOOKMARKS: "hanzi_bookmarks_v2"

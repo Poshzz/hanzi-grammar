@@ -300,17 +300,24 @@
       <div class="space-y-3">
         <div>
           <label class="text-xs font-bold text-slate-700 block mb-1">
-            Google Gemini API Key:
+            Google Gemini API Key (โหมดส่วนตัว / BYOK):
           </label>
-          <input type="password" id="apiKeyInput" class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm font-mono" placeholder="AIzaSy...">
+          <input type="password" id="apiKeyInput" class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm font-mono" placeholder="AIzaSy... (เว้นว่างได้ถ้ามี Cloudflare Secret)">
           <p class="text-[11px] text-slate-400 mt-1">
-            API Key จะถูกจัดเก็บใน <code class="bg-slate-100 px-1 rounded">localStorage</code> บนเบราว์เซอร์ของคุณเท่านั้น (รับฟรีได้ที่ <a href="https://aistudio.google.com/" target="_blank" class="text-blue-600 underline">Google AI Studio</a> ฟรี 1,500 ครั้ง/วัน)
+            หาก Deploy บน Cloudflare Pages พร้อมตั้งค่า Secret <code class="bg-slate-100 px-1 rounded">GEMINI_API_KEY</code> แล้ว ไม่จำเป็นต้องกรอกช่องนี้
           </p>
         </div>
 
-        <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-200 text-xs text-emerald-800 space-y-1">
-          <p class="font-bold">✨ แนะนำ: ใช้ Gemini 2.0 Flash</p>
-          <p>ประมวลผลเร็วขึ้น 2 เท่า และรองรับ Structured Output 100% พร้อมความสามารถ OCR รูปภาพ</p>
+        <div>
+          <label class="text-xs font-bold text-slate-700 block mb-1">
+            Custom Cloudflare Proxy Endpoint (ไม่บังคับ):
+          </label>
+          <input type="text" id="customEndpointInput" class="w-full p-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none text-xs font-mono" placeholder="/api/analyze หรือ https://my-worker.workers.dev/api/analyze">
+        </div>
+
+        <div class="p-3 bg-blue-50 rounded-xl border border-blue-200 text-xs text-blue-900 space-y-1">
+          <p class="font-bold">☁️ รองรับ Cloudflare Secret 100%</p>
+          <p>ซ่อน API Key ไว้ที่ Cloudflare Edge Server (Secrets) ปลอดภัย 100% คีย์ไม่หลุดฝั่งเบราว์เซอร์</p>
         </div>
       </div>
 
